@@ -1,46 +1,181 @@
-﻿<!DOCTYPE html>
+﻿@using Newtonsoft.Json
+@{
+    var productJson = ViewData["Product"] as string;
+    var memberJson = ViewData["Member"] as string;
+    var postJson = ViewData["Post"] as string;
+    var webJson = ViewData["Web"] as string;
+    var rootObject = JsonConvert.DeserializeObject<ResponseViewModel>(memberJson);
+    var memberDetailObject = rootObject?.Member;
+    var memberFullName = memberDetailObject.MemberFullName.Replace(" ", "");
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - OvenBites</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <title>@memberFullName</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/OvenBites.styles.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Open+Sans&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">OvenBites</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+        <h1><img src="oven-bites-logo.png" alt="@memberFullName" class="header-logo"></h1>
+        <nav>
+            <a href="#">Home</a>
+            <a href="#">Cookies</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+            <a href="@memberDetailObject.FacebookProfile" target="_blank" aria-label="Facebook">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="@memberDetailObject.InstagramProfile" target="_blank" aria-label="Instagram">
+                <i class="fab fa-instagram"></i>
+            </a>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - OvenBites - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <section class="hero-slider">
+        <div class="slides-container">
+            <div class="slide active" style="background-image: url('oven-bites-03.jpg');">
+                <h2>Handmade NY-Style Cookies</h2>
+            </div>
+            <div class="slide" style="background-image: url('oven-bites-03.jpg');">
+                <h2>Freshly Baked Daily</h2>
+            </div>
+            <div class="slide" style="background-image: url('oven-bites-03.jpg');">
+                <h2>Taste the Difference</h2>
+            </div>
+        </div>
+        <button class="prev-button">&#10094;</button>
+        <button class="next-button">&#10095;</button>
+        <div class="dots-container">
+            <span class="dot active" data-slide-index="0"></span>
+            <span class="dot" data-slide-index="1"></span>
+            <span class="dot" data-slide-index="2"></span>
+        </div>
+    </section>
+
+    <section class="products">
+        <div class="product">
+            <img src="oven-bites-03.jpg" alt="Cookie 1">
+            <h3>Nutella Stuffed Cookie</h3>
+            <p>$10.00</p>
+        </div>
+        <div class="product">
+            <img src="oven-bites-03.jpg" alt="Cookie 2">
+            <h3>Ferrero Bliss Cookie</h3>
+            <p>$9.00</p>
+        </div>
+        <div class="product">
+            <img src="oven-bites-03.jpg" alt="Cookie 3">
+            <h3>Broadway Nutella Cookie</h3>
+            <p>$8.00</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="newsletter">
+            <p>Subscribe to our emails</p>
+            <input type="email" placeholder="Email address" />
+        </div>
+        <div class="social-icons">
+            <a href="@memberDetailObject.FacebookProfile" target="_blank" aria-label="Facebook">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="@memberDetailObject.InstagramProfile" target="_blank" aria-label="Instagram">
+                <i class="fab fa-instagram"></i>
+            </a>
+        </div>
+        <div class="copyright-content">
+            &copy; @System.DateTime.Now.Year.ToString() @memberFullName
         </div>
     </footer>
+
+    <!-- Popup Overlay -->
+    <div class="popup-overlay" id="popup">
+        <div class="popup">
+            <button class="close-btn" onclick="closePopup()">×</button>
+            <img src="oven-bites-03.jpg" alt="Flavor of the Month">
+            <h2>Flavor of the Month!</h2>
+            <p>Try our limited-edition cookie:<br><strong>HABIBI NUTELLA DUBAI 🍪🤎</strong></p>
+            <button class="popup-button">Order now</button>
+            <p>Only available this month. Limited edition!</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const slidesContainer = document.querySelector('.slides-container');
+          const slides = document.querySelectorAll('.slide');
+          const prevButton = document.querySelector('.prev-button');
+          const nextButton = document.querySelector('.next-button');
+          const dotsContainer = document.querySelector('.dots-container');
+          const dots = document.querySelectorAll('.dot');
+
+          let currentIndex = 0;
+          const totalSlides = slides.length;
+
+          function updateSlider() {
+            slidesContainer.style.transform = `translateX(-${currentIndex * 100}%)`;
+            updateDots();
+          }
+
+          function updateDots() {
+            dots.forEach((dot, index) => {
+              if (index === currentIndex) {
+                dot.classList.add('active');
+              } else {
+                dot.classList.remove('active');
+              }
+            });
+          }
+
+          nextButton.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % totalSlides;
+            updateSlider();
+          });
+
+          prevButton.addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+            updateSlider();
+          });
+
+          dots.forEach(dot => {
+            dot.addEventListener('click', (event) => {
+              const slideIndex = parseInt(event.target.dataset.slideIndex);
+              currentIndex = slideIndex;
+              updateSlider();
+            });
+          });
+
+          // Optional: Auto-slide
+          setInterval(() => {
+            currentIndex = (currentIndex + 1) % totalSlides;
+            updateSlider();
+          }, 5000); // Change slide every 5 seconds
+
+          // Initialize the slider
+          updateSlider();
+        });
+
+        // Show popup on load
+        window.onload = function() {
+          document.getElementById("popup").style.display = "flex";
+        };
+
+        // Close popup
+        function closePopup() {
+          document.getElementById("popup").style.display = "none";
+        }
+    </script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

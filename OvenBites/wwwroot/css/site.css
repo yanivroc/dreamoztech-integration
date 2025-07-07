@@ -1,22 +1,300 @@
-html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
 body {
-  margin-bottom: 60px;
+    margin: 0;
+    font-family: 'Open Sans', sans-serif;
+    background-color: #fff8f5;
+    color: #333;
 }
+
+/* Header Styles */
+header {
+    background-color: #fff;
+    padding: 20px 40px; /* Base padding for header content */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    /* --- CRUCIAL CHANGES FOR FIXED HEADER --- */
+    position: fixed; /* Makes the header stick to the viewport */
+    top: 0; /* Positions it at the very top */
+    left: 0; /* Positions it at the very left */
+    width: 100%; /* Ensures it spans the full width of the viewport */
+    z-index: 1000; /* High z-index to ensure it stays on top of all other content */
+    /* --- END CRUCIAL CHANGES --- */
+
+    height: 100px; /* Explicit height for the header, adjust based on your needs */
+    box-sizing: border-box; /* Include padding in the height calculation */
+}
+
+    header h1 {
+        margin: 0; /* Remove default margin from h1 */
+        font-size: 0; /* Hide the h1 text visually */
+        line-height: 0; /* Ensures no extra line height from the hidden text */
+    }
+
+.header-logo {
+    max-height: 120px; /* Your desired height for the logo */
+    width: auto; /* Ensures the logo's aspect ratio is maintained */
+
+    position: absolute; /* Take logo out of normal document flow */
+    z-index: 9999; /* Ensure logo is on top of everything */
+    /* Positioning properties - ADJUST THESE CAREFULLY */
+    top: 0px; /* How far from the top of the HEADER (its relative parent) */
+    left: 40px; /* How far from the left of the HEADER (matches header's left padding) */
+}
+
+nav {
+    margin-left: auto; /* Pushes nav to the far right */
+    position: relative; /* Essential for z-index to work if logo overlaps */
+    z-index: 10000; /* Ensure nav is above logo if needed for interaction */
+    display: flex;
+    align-items: center; /* Added for vertical alignment of nav items */
+}
+
+    nav a {
+        margin-left: 20px;
+        text-decoration: none;
+        color: #b45f06;
+        font-weight: bold;
+        display: inline-flex; /* Ensures icons and text links align well */
+        align-items: center; /* Vertically centers icon with other text links */
+        gap: 5px; /* Adds a small gap if you ever put text next to an icon */
+    }
+
+        /* Specific styles for social icons in HEADER */
+        nav a .fab { /* Targets the Font Awesome icon within a nav link */
+            font-size: 20px; /* Adjust size as needed */
+            color: #b45f06; /* Inherit or set specific color */
+            transition: color 0.3s ease; /* Smooth transition for hover effect */
+        }
+
+            /* Hover effect for social icons in HEADER */
+            nav a .fab:hover {
+                color: #8c4a00; /* Darker shade on hover */
+            }
+
+        /* Optional: Remove underline for social links if they are only icons in HEADER */
+        nav a[aria-label="Facebook"],
+        nav a[aria-label="Instagram"] {
+            text-decoration: none;
+            /* If you only want the icon to change color, set the link's color */
+            color: #b45f06; /* Make sure the link color matches the icon color */
+        }
+
+/* Hero Slider Styles */
+.hero-slider {
+    position: relative;
+    width: 100%;
+    height: 400px; /* Adjust slider height as needed */
+    overflow: hidden;
+    /* This margin-top is CRUCIAL to push the slider content below the fixed header. */
+    /* It should be at least the height of your header (100px in this case). */
+    /* If you want the logo to *visually* overlap the banner: */
+    /* Subtract the overlap amount from the header's height. E.g., if header is 100px and you want 30px overlap: */
+    /* margin-top: 70px; */
+    margin-top: 100px; /* Default: no overlap, just pushes content below fixed header */
+
+    z-index: 5; /* Ensure slider is below fixed header but above other sections */
+}
+
+.slides-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s ease-in-out; /* Smooth transition for sliding */
+}
+
+.slide {
+    min-width: 100%; /* Each slide takes full width of the container */
+    height: 100%;
+    background-position: center;
+    background-size: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+    .slide h2 {
+        font-size: 48px;
+        text-align: center;
+    }
+
+.prev-button,
+.next-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 24px;
+    z-index: 100;
+    border-radius: 5px;
+}
+
+.prev-button {
+    left: 10px;
+}
+
+.next-button {
+    right: 10px;
+}
+
+.dots-container {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    .dot.active {
+        background-color: #b45f06;
+    }
+
+/* Products Section Styles */
+.products {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 40px;
+}
+
+.product {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+    .product img {
+        width: 100%;
+        height: auto;
+    }
+
+    .product h3 {
+        margin: 10px 0;
+        color: #b45f06;
+    }
+
+    .product p {
+        padding: 0 10px 10px;
+    }
+
+/* Footer */
+footer {
+    background: #fafafa;
+    padding: 40px;
+    text-align: center;
+    border-top: 1px solid #ddd;
+}
+
+.newsletter input {
+    padding: 8px;
+    width: 200px;
+}
+
+.social-icons {
+    margin-top: 20px;
+    /* font-size: 18px; Removed, as individual icon size is set on the 'a' tag */
+    display: flex; /* Make it a flex container to align icons */
+    justify-content: center; /* Center the icons horizontally */
+    gap: 15px; /* Space between icons */
+}
+
+    .social-icons a {
+        color: #b45f06; /* Icon color */
+        font-size: 24px; /* Larger size for footer icons, adjust as needed */
+        transition: color 0.3s ease; /* Smooth hover effect */
+        text-decoration: none; /* Remove underline */
+    }
+
+        .social-icons a:hover {
+            color: #8c4a00; /* Darker shade on hover */
+        }
+
+.copyright-content {
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+/* Overlay background */
+.popup-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Popup container */
+.popup {
+    background-color: #ffe6e6;
+    padding: 30px 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    position: relative;
+}
+
+    .popup img {
+        width: auto;
+        max-width: 60%;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        object-fit: cover;
+    }
+
+    .popup h2 {
+        font-size: 26px;
+        margin-bottom: 10px;
+    }
+
+    .popup p {
+        font-size: 16px;
+        margin: 8px 0;
+    }
+
+    .popup .popup-button {
+        background-color: #000;
+        color: #fff;
+        border: none;
+        padding: 12px 25px;
+        font-size: 16px;
+        margin-top: 15px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .popup .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+    }
