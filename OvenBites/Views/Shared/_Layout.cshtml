@@ -1,12 +1,32 @@
 ﻿@using Newtonsoft.Json
+@using OvenBites.Api
 @{
+    var domainPath = "https://dreamoztech.com/";
     var productJson = ViewData["Product"] as string;
     var memberJson = ViewData["Member"] as string;
     var postJson = ViewData["Post"] as string;
     var webJson = ViewData["Web"] as string;
+    //member
     var rootObject = JsonConvert.DeserializeObject<ResponseViewModel>(memberJson);
     var memberDetailObject = rootObject?.Member;
     var memberFullName = memberDetailObject.MemberFullName.Replace(" ", "");
+    var memberLogoImagePath = new Uri(domainPath + memberDetailObject.ProfilePicture);
+    //web
+    var webDetailObject = JsonConvert.DeserializeObject<ResponseViewModel>(webJson);
+    var web = webDetailObject.Webs.FirstOrDefault();
+    List<MenuItemModel> menuItems = JsonConvert.DeserializeObject<List<MenuItemModel>>(web.MenuItems);
+    var cookiesPage = web.WebPages.FirstOrDefault(x => x.PagePath == "about");
+    var aboutPage = web.WebPages.FirstOrDefault(x => x.PagePath == "about");
+    var contactPage = web.WebPages.FirstOrDefault(x => x.PagePath == "about");
+    var termsPage = web.WebPages.FirstOrDefault(x => x.PagePath == "about");
+    //post
+    var postDetailObject = JsonConvert.DeserializeObject<ResponseViewModel>(postJson);
+    var sliderPost = postDetailObject.Posts.FirstOrDefault(x => x.BizDisplayTitle == "Slider-Ovenbites");
+    var popupPost = postDetailObject.Posts.FirstOrDefault(x => x.BizDisplayTitle == "Popup-Ovenbites");
+    List<PicDto> sliderPics = sliderPost.Pics.ToList();
+    //product
+    var productDetailObject = JsonConvert.DeserializeObject<ResponseViewModel>(productJson);
+    var productList = productDetailObject.Products.Posts.ToList();
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -20,12 +40,12 @@
 </head>
 <body>
     <header>
-        <h1><img src="oven-bites-logo.png" alt="@memberFullName" class="header-logo"></h1>
+        <h1><img src="@memberLogoImagePath" alt="@memberFullName" class="header-logo"></h1>
         <nav>
-            <a href="#">Home</a>
-            <a href="#">Cookies</a>
-            <a href="#">About</a>
-            <a href="#">Contact</a>
+            @foreach (var item in menuItems)
+            {
+                <a href="#@item.Http">@item.Title</a>
+            }
             <a href="@memberDetailObject.FacebookProfile" target="_blank" aria-label="Facebook">
                 <i class="fab fa-facebook-f"></i>
             </a>
@@ -35,34 +55,39 @@
         </nav>
     </header>
 
+    <section id="Home" class="hero-slider">
+        <div class="slides-container">
+            @{
+                int slideIndex = 0;
+                foreach (var pic in sliderPics.OrderBy(p => p.DisplayOrder))
+                {
+                    <div class="slide @(slideIndex == 0 ? "active" : "")"
+                         style="background-image: url('@(pic.PicPath)');">
+                        @* Prepend domainPath for full URL *@
+                        <h2>@pic.PicDescription</h2>
+                    </div>
+                    slideIndex++;
+                }
+            }
+        </div>
+        <button class="prev-button">&#10094;</button>
+        <button class="next-button">&#10095;</button>
+        <div class="dots-container">
+            @foreach (var pic in sliderPics.OrderBy(p => p.DisplayOrder)) // Loop through the same data
+            {
+                <span class="dot @(slideIndex == 0 ? "active" : "")" data-slide-index="@slideIndex"></span>
+                slideIndex++;
+            }
+        </div>
+    </section>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <section class="hero-slider">
-        <div class="slides-container">
-            <div class="slide active" style="background-image: url('oven-bites-03.jpg');">
-                <h2>Handmade NY-Style Cookies</h2>
-            </div>
-            <div class="slide" style="background-image: url('oven-bites-03.jpg');">
-                <h2>Freshly Baked Daily</h2>
-            </div>
-            <div class="slide" style="background-image: url('oven-bites-03.jpg');">
-                <h2>Taste the Difference</h2>
-            </div>
-        </div>
-        <button class="prev-button">&#10094;</button>
-        <button class="next-button">&#10095;</button>
-        <div class="dots-container">
-            <span class="dot active" data-slide-index="0"></span>
-            <span class="dot" data-slide-index="1"></span>
-            <span class="dot" data-slide-index="2"></span>
-        </div>
-    </section>
-
-    <section class="products">
+    <section id="Cookies" class="products">
         <div class="product">
             <img src="oven-bites-03.jpg" alt="Cookie 1">
             <h3>Nutella Stuffed Cookie</h3>
