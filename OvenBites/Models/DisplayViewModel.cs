@@ -1,10 +1,28 @@
 ﻿using OvenBites.Api;
+using System.Collections.Generic;
+using System;
 
 namespace OvenBites.Models
 {
     public class DisplayViewModel
     {
-        public DisplayViewModel(MemberDto memberDetailObject, string memberFullName, Uri memberLogoImagePath, List<PostDto> productList, List<MenuItemRoot>? menuItems, WebPageDto? homePage, WebPageDto? cookiesPage, WebPageDto? aboutPage, WebPageDto? contactPage, WebPageDto? termsPage, PostDto sliderPost, PostDto popupPost, Uri popupPostImagePath, List<PicDto> sliderPics, WebPageDto? currentPage)
+        public DisplayViewModel(
+            MemberDto memberDetailObject,
+            string memberFullName,
+            Uri memberLogoImagePath,
+            List<PostDto> productList,
+            List<MenuItemRoot>? menuItems,
+            WebPageDto? homePage,
+            WebPageDto? cookiesPage,
+            WebPageDto? aboutPage,
+            WebPageDto? contactPage,
+            WebPageDto? termsPage,
+            PostDto sliderPost,
+            PostDto popupPost,
+            Uri popupPostImagePath,
+            List<PicDto> sliderPics,
+            WebPageDto? currentPage,
+            PostDto? currentPost = null)
         {
             MemberDetailObject = memberDetailObject;
             MemberFullName = memberFullName;
@@ -21,6 +39,7 @@ namespace OvenBites.Models
             PopupPostImagePath = popupPostImagePath;
             SliderPics = sliderPics;
             CurrentPage = currentPage;
+            CurrentPost = currentPost; 
         }
 
         public string MemberFullName { get; }
@@ -38,5 +57,6 @@ namespace OvenBites.Models
         public WebPageDto? CurrentPage { get; private set; }
         public MemberDto MemberDetailObject { get; }
         public PostDto PopupPost { get; }
+        public PostDto? CurrentPost { get; } 
     }
 }

@@ -78,6 +78,7 @@ namespace OvenBites.Controllers
             //product
             var productDetailObject = JsonConvert.DeserializeObject<ResponseViewModel>(productJson);
             var productList = productDetailObject.Products.Posts.ToList();
+            var currentPost = productList.FirstOrDefault(x=>x.BizDisplayTitle.ToLower() == pageName.ToLower());
             //web
             var webDetailObject = JsonConvert.DeserializeObject<ResponseViewModel>(webJson);
             var web = webDetailObject.Webs.FirstOrDefault();
@@ -96,13 +97,8 @@ namespace OvenBites.Controllers
             var popupPostImagePath = new Uri(popupPostImage.PicPath);
             List<PicDto> sliderPics = sliderPost.Pics.ToList();
 
-            DisplayViewModel vm = new DisplayViewModel(memberDetailObject, memberFullName, memberLogoImagePath, productList, menuItems, homePage, cookiesPage, aboutPage, contactPage, termsPage, sliderPost, popupPost, popupPostImagePath, sliderPics, currentPage);  
+            DisplayViewModel vm = new DisplayViewModel(memberDetailObject, memberFullName, memberLogoImagePath, productList, menuItems, homePage, cookiesPage, aboutPage, contactPage, termsPage, sliderPost, popupPost, popupPostImagePath, sliderPics, currentPage, currentPost);  
             return View(vm);
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
