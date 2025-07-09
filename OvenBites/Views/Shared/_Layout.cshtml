@@ -42,11 +42,20 @@
 <body>
     <header>
         <h1><img src="@memberLogoImagePath" alt="@memberFullName" class="header-logo"></h1>
-        <nav>
+        <button class="hamburger-menu" aria-label="Open navigation menu">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+        <nav id="mainNav">
+            <button class="close-menu-btn" aria-label="Close menu">&times;</button>
             @foreach (var item in menuItems)
             {
                 <a href="#@item.Http">@item.Title</a>
             }
+            <a href="" aria-label="Shopping Cart">
+                <i class="fas fa-shopping-cart"></i>
+            </a>
             <a href="@memberDetailObject.FacebookProfile" target="_blank" aria-label="Facebook">
                 <i class="fab fa-facebook-f"></i>
             </a>
@@ -63,7 +72,7 @@
                 foreach (var pic in sliderPics.OrderBy(p => p.DisplayOrder))
                 {
                     <div class="slide @(slideIndex == 0 ? "active" : "")"
-                    style="background-image: url('@(pic.PicPath)');">
+                         style="background-image: url('@(pic.PicPath)');">
                         @* Prepend domainPath for full URL *@
                         <h2>@pic.PicDescription</h2>
                     </div>
@@ -91,7 +100,7 @@
     <section id="Cookies" class="products">
         @foreach (var item in productList)
         {
-            var itemPrice = item.Attributes.FirstOrDefault(x=>x.Title == "price").Value;
+            var itemPrice = item.Attributes.FirstOrDefault(x => x.Title == "price").Value;
             var itemImage = item.Pics.FirstOrDefault();
             var itemImageUrl = new Uri(itemImage.PicPath);
             <div class="product">
@@ -196,7 +205,10 @@
     <footer>
         <div class="newsletter">
             <p>Subscribe to our emails</p>
-            <input type="email" placeholder="Email address" />
+            <form id="newsletterForm" action="/subscribe" method="POST" onsubmit="handleSubscription(event)">
+                <input type="text" id="nameInput" placeholder="Your Name" name="name" required /> <input type="email" id="emailInput" placeholder="Email address" name="email" required />
+                <button type="submit" class="subscribe-button">Subscribe</button>
+            </form>
         </div>
         <div class="social-icons">
             <a href="@memberDetailObject.FacebookProfile" target="_blank" aria-label="Facebook">
@@ -218,74 +230,209 @@
             <img src="oven-bites-03.jpg" alt="Flavor of the Month">
             <h2>Flavor of the Month!</h2>
             <p>Try our limited-edition cookie:<br><strong>HABIBI NUTELLA DUBAI 🍪🤎</strong></p>
-            <button class="popup-button">Order now</button>
+            <button class="popup-button" onclick="orderNowAndNavigate()">Order now</button>
             <p>Only available this month. Limited edition!</p>
         </div>
     </div>
 
     <script>
+        // This function runs when the initial HTML document has been completely loaded and parsed.
+        // It's ideal for setting up event listeners for elements that are present on the page load.
         document.addEventListener('DOMContentLoaded', function() {
-          const slidesContainer = document.querySelector('.slides-container');
-          const slides = document.querySelectorAll('.slide');
-          const prevButton = document.querySelector('.prev-button');
-          const nextButton = document.querySelector('.next-button');
-          const dotsContainer = document.querySelector('.dots-container');
-          const dots = document.querySelectorAll('.dot');
+            const hamburgerMenu = document.querySelector('.hamburger-menu'); // Renamed to hamburgerMenu for clarity
+            const nav = document.getElementById('mainNav'); // Use the ID we added, renamed to nav for consistency
+            const closeMenuBtn = document.querySelector('.close-menu-btn'); // Select the new close button
+            const body = document.body; // Reference to the body element
 
-          let currentIndex = 0;
-          const totalSlides = slides.length;
+            // Function to toggle menu state
+            function toggleMenu() {
+                if (nav) {
+                    nav.classList.toggle('active'); // Toggles the 'active' class on the nav
+                }
+                if (hamburgerMenu) {
+                    hamburgerMenu.classList.toggle('active'); // Optional: Add active state to hamburger for animation
+                }
+                body.classList.toggle('menu-open'); // Toggles a class on the body to control overflow/overlay
+            }
 
-          function updateSlider() {
-            slidesContainer.style.transform = `translateX(-${currentIndex * 100}%)`;
-            updateDots();
-          }
+            // Event listener for the hamburger menu to OPEN the menu
+            if (hamburgerMenu && nav) { // Ensure both elements exist
+                hamburgerMenu.addEventListener('click', toggleMenu);
+            }
 
-          function updateDots() {
-            dots.forEach((dot, index) => {
-              if (index === currentIndex) {
-                dot.classList.add('active');
-              } else {
-                dot.classList.remove('active');
-              }
+            // Event listener for the new close button to CLOSE the menu
+            if (closeMenuBtn && nav) { // Ensure both elements exist
+                closeMenuBtn.addEventListener('click', toggleMenu);
+            }
+
+            // Optional: Close menu when a link inside it is clicked (for single-page navigation)
+            if (nav) {
+                // Exclude the close button itself from this listener
+                nav.querySelectorAll('a:not(.close-menu-btn)').forEach(link => {
+                    link.addEventListener('click', () => {
+                        // Only close if the menu is currently open
+                        if (nav.classList.contains('active')) {
+                            toggleMenu();
+                        }
+                    });
+                });
+            }
+
+            // Optional: Close menu if user clicks outside the menu when it's open
+            document.addEventListener('click', function(event) {
+                // Check if the nav is active (open) AND the click target is NOT inside the nav
+                // AND the click target is NOT the hamburger menu button itself.
+                if (nav && nav.classList.contains('active') &&
+                    !nav.contains(event.target) &&
+                    !hamburgerMenu.contains(event.target)) {
+                    toggleMenu();
+                }
             });
-          }
 
-          nextButton.addEventListener('click', () => {
-            currentIndex = (currentIndex + 1) % totalSlides;
-            updateSlider();
-          });
 
-          prevButton.addEventListener('click', () => {
-            currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
-            updateSlider();
-          });
+            // --- Slider functionality (no changes needed here for the close button) ---
+            const slidesContainer = document.querySelector('.slides-container');
+            const slides = document.querySelectorAll('.slide');
+            const prevButton = document.querySelector('.prev-button');
+            const nextButton = document.querySelector('.next-button');
+            const dotsContainer = document.querySelector('.dots-container');
+            const dots = document.querySelectorAll('.dot'); // Make sure your HTML has elements with class 'dot'
 
-          dots.forEach(dot => {
-            dot.addEventListener('click', (event) => {
-              const slideIndex = parseInt(event.target.dataset.slideIndex);
-              currentIndex = slideIndex;
-              updateSlider();
-            });
-          });
+            let currentIndex = 0;
+            const totalSlides = slides.length;
 
-          // Optional: Auto-slide
-          setInterval(() => {
-            currentIndex = (currentIndex + 1) % totalSlides;
-            updateSlider();
-          }, 5000); // Change slide every 5 seconds
+            function updateSlider() {
+                slidesContainer.style.transform = `translateX(-${currentIndex * 100}%)`;
+                updateDots();
+            }
 
-          // Initialize the slider
-          updateSlider();
+            function updateDots() {
+                dots.forEach((dot, index) => {
+                    if (index === currentIndex) {
+                        dot.classList.add('active');
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                });
+            }
+
+            if (nextButton) {
+                nextButton.addEventListener('click', () => {
+                    currentIndex = (currentIndex + 1) % totalSlides;
+                    updateSlider();
+                });
+            }
+
+            if (prevButton) {
+                prevButton.addEventListener('click', () => {
+                    currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                    updateSlider();
+                });
+            }
+
+            if (dotsContainer) { // Check if dotsContainer exists before adding listeners to dots
+                dots.forEach(dot => {
+                    dot.addEventListener('click', (event) => {
+                        const slideIndex = parseInt(event.target.dataset.slideIndex);
+                        currentIndex = slideIndex;
+                        updateSlider();
+                    });
+                });
+            }
+
+            // Optional: Auto-slide
+            // Ensure you pause this if user interacts with buttons for better UX
+            if (totalSlides > 1) { // Only auto-slide if there's more than one slide
+                setInterval(() => {
+                    currentIndex = (currentIndex + 1) % totalSlides;
+                    updateSlider();
+                }, 5000); // Change slide every 5 seconds
+            }
+
+            // Initialize the slider state
+            if (slidesContainer) {
+                updateSlider();
+            }
         });
+        // --- End of DOMContentLoaded block ---
+
+
+        // Functions defined outside of DOMContentLoaded are globally accessible.
+        // This is where your popup and email validation functions should go.
 
         // Show popup on load
+        // This runs after the entire window (including images, iframes) has loaded.
         window.onload = function() {
-          document.getElementById("popup").style.display = "flex";
+            // Ensure the popup overlay element with id="popup" exists in your HTML
+            const popupOverlayElement = document.getElementById("popup"); // Changed to popupOverlayElement for clarity
+            if (popupOverlayElement) {
+                popupOverlayElement.style.display = "flex"; // Use "flex" to center content as per CSS
+            }
         };
 
         // Close popup
         function closePopup() {
-          document.getElementById("popup").style.display = "none";
+            const popupOverlayElement = document.getElementById("popup");
+            if (popupOverlayElement) {
+                popupOverlayElement.style.display = "none";
+            }
+        }
+
+        // Close popup and navigate to #products (assuming 'cookies' was a typo and you meant products)
+        function orderNowAndNavigate() {
+            closePopup();
+            // Corrected target ID to 'products' which is a more common section name.
+            // If your actual section ID is 'cookies', change this back to '#cookies'.
+            window.location.href = '#products';
+        }
+
+        // NEW FUNCTION: Handle form submission with AJAX after browser validation
+        async function handleSubscription(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            const nameInput = document.getElementById('nameInput'); // Get the name input
+            const emailInput = document.getElementById('emailInput');
+
+            const nameValue = nameInput ? nameInput.value.trim() : ''; // Get name, handle if input doesn't exist
+            const emailValue = emailInput.value.trim();
+
+            // **Important:** At this point, the browser has already validated the email field
+            // because of type="email" and required attributes on the input.
+
+            // Perform the AJAX request
+            try {
+                // Replace '/subscribe' with your actual server endpoint for subscription
+                const response = await fetch('/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    // Include both name and email in the request body
+                    body: JSON.stringify({
+                        name: nameValue,
+                        email: emailValue
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                console.log('Subscription Success:', data);
+                alert('Thank you for subscribing, ' + (nameValue || '!') + ' We will send you updates!');
+
+                // Clear both input fields after successful subscription
+                if (nameInput) nameInput.value = '';
+                emailInput.value = '';
+
+            } catch (error) {
+                console.error('Subscription Error:', error);
+                alert('There was an error subscribing: ' + error.message + '. Please try again later.');
+            }
         }
     </script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

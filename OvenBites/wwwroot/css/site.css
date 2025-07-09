@@ -4,6 +4,9 @@ body {
     font-family: 'Open Sans', sans-serif;
     background-color: #fff8f5;
     color: #333;
+    /* CRUCIAL: Push content down by header height */
+    padding-top: 100px; /* Default for desktop header height */
+    overflow-x: hidden; /* Prevent horizontal scrollbar from mobile menu sliding */
 }
 
 /* Header Styles */
@@ -14,70 +17,123 @@ header {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #eee;
-    /* --- CRUCIAL CHANGES FOR FIXED HEADER --- */
     position: fixed; /* Makes the header stick to the viewport */
     top: 0; /* Positions it at the very top */
     left: 0; /* Positions it at the very left */
     width: 100%; /* Ensures it spans the full width of the viewport */
     z-index: 1000; /* High z-index to ensure it stays on top of all other content */
-    /* --- END CRUCIAL CHANGES --- */
-    height: 100px; /* Explicit height for the header, adjust based on your needs */
+    height: 100px; /* Explicit height for the header */
     box-sizing: border-box; /* Include padding in the height calculation */
 }
 
     header h1 {
-        margin: 0; /* Remove default margin from h1 */
+        margin: 0;
         font-size: 0; /* Hide the h1 text visually */
-        line-height: 0; /* Ensures no extra line height from the hidden text */
+        line-height: 0;
+        flex-shrink: 0;
     }
 
 .header-logo {
     max-height: 120px; /* Your desired height for the logo */
-    width: auto; /* Ensures the logo's aspect ratio is maintained */
-    position: absolute; /* Take logo out of normal document flow */
-    z-index: 9999; /* Ensure logo is on top of everything */
-    /* Positioning properties - ADJUST THESE CAREFULLY */
-    top: 0px; /* How far from the top of the HEADER (its relative parent) */
-    left: 40px; /* How far from the left of the HEADER (matches header's left padding) */
+    width: auto;
+    position: absolute;
+    z-index: 1001; /* Ensure logo is on top of nav links, but below hamburger */
+    top: 0px;
+    left: 40px;
 }
 
 nav {
     margin-left: auto; /* Pushes nav to the far right */
-    position: relative; /* Essential for z-index to work if logo overlaps */
-    z-index: 10000; /* Ensure nav is above logo if needed for interaction */
+    position: relative;
+    z-index: 1000;
     display: flex;
-    align-items: center; /* Added for vertical alignment of nav items */
+    align-items: center;
+    gap: 20px; /* Spacing between desktop nav items */
 }
 
     nav a {
-        margin-left: 20px;
         text-decoration: none;
         color: #b45f06;
         font-weight: bold;
-        display: inline-flex; /* Ensures icons and text links align well */
-        align-items: center; /* Vertically centers icon with other text links */
-        gap: 5px; /* Adds a small gap if you ever put text next to an icon */
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: color 0.3s ease;
     }
 
-        /* Specific styles for social icons in HEADER */
-        nav a .fab { /* Targets the Font Awesome icon within a nav link */
-            font-size: 20px; /* Adjust size as needed */
-            color: #b45f06; /* Inherit or set specific color */
-            transition: color 0.3s ease; /* Smooth transition for hover effect */
+        nav a .fab,
+        nav a .fas {
+            font-size: 20px;
+            color: #b45f06;
+            transition: color 0.3s ease;
         }
 
-            /* Hover effect for social icons in HEADER */
-            nav a .fab:hover {
-                color: #8c4a00; /* Darker shade on hover */
-            }
+        nav a:hover {
+            color: #8c4a00;
+        }
 
-        /* Optional: Remove underline for social links if they are only icons in HEADER */
+        nav a .fab:hover,
+        nav a .fas:hover {
+            color: #8c4a00;
+        }
+
         nav a[aria-label="Facebook"],
-        nav a[aria-label="Instagram"] {
+        nav a[aria-label="Instagram"],
+        nav a[aria-label="Shopping Cart"] {
             text-decoration: none;
-            /* If you only want the icon to change color, set the link's color */
-            color: #b45f06; /* Make sure the link color matches the icon color */
+            color: #b45f06;
         }
+
+/* --- Hamburger Menu Styling (Hidden by default on desktop) --- */
+.hamburger-menu {
+    display: none; /* Hide on desktop */
+    flex-direction: column;
+    justify-content: space-around;
+    width: 30px;
+    height: 25px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 1002; /* Ensure hamburger is above logo and mobile nav */
+}
+
+    .hamburger-menu .bar {
+        width: 100%;
+        height: 3px;
+        background-color: #333; /* Color of the bars */
+        border-radius: 5px;
+        transition: all 0.3s ease;
+    }
+
+    /* Hamburger animation when active */
+    .hamburger-menu.active .bar:nth-child(1) {
+        transform: translateY(11px) rotate(45deg);
+    }
+
+    .hamburger-menu.active .bar:nth-child(2) {
+        opacity: 0;
+    }
+
+    .hamburger-menu.active .bar:nth-child(3) {
+        transform: translateY(-11px) rotate(-45deg);
+    }
+
+/* --- Mobile Menu Close Button (Hidden by default) --- */
+.close-menu-btn {
+    display: none; /* Hidden by default, will be shown in mobile media query when menu is active */
+    position: absolute;
+    top: 30px; /* Adjust as needed */
+    right: 20px; /* Adjust as needed */
+    background: none;
+    border: none;
+    font-size: 30px;
+    color: white; /* Color for the 'X' */
+    cursor: pointer;
+    z-index: 1003; /* Ensure it's on top of everything in the menu */
+    padding: 5px; /* Add some padding for easier tapping */
+}
+
 
 /* Hero Slider Styles */
 .hero-slider {
@@ -85,24 +141,18 @@ nav {
     width: 100%;
     height: 400px; /* Adjust slider height as needed */
     overflow: hidden;
-    /* This margin-top is CRUCIAL to push the slider content below the fixed header. */
-    /* It should be at least the height of your header (100px in this case). */
-    /* If you want the logo to *visually* overlap the banner: */
-    /* Subtract the overlap amount from the header's height. E.g., if header is 100px and you want 30px overlap: */
-    /* margin-top: 70px; */
-    margin-top: 100px; /* Default: no overlap, just pushes content below fixed header */
-    z-index: 5; /* Ensure slider is below fixed header but above other sections */
+    z-index: 5;
 }
 
 .slides-container {
     display: flex;
     width: 100%;
     height: 100%;
-    transition: transform 0.5s ease-in-out; /* Smooth transition for sliding */
+    transition: transform 0.5s ease-in-out;
 }
 
 .slide {
-    min-width: 100%; /* Each slide takes full width of the container */
+    min-width: 100%;
     height: 100%;
     background-position: center;
     background-size: cover;
@@ -111,12 +161,14 @@ nav {
     justify-content: center;
     color: white;
     text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    box-sizing: border-box;
 }
 
     .slide h2 {
         font-size: 48px;
         text-align: center;
+        padding: 0 20px; /* Add padding to prevent text touching edges on small screens */
+        box-sizing: border-box;
     }
 
 .prev-button,
@@ -168,36 +220,33 @@ nav {
 /* Products Section Styles */
 .products {
     display: grid;
-    /* This creates a responsive grid that tries to fit as many 250px columns as possible */
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px; /* Space between grid items */
-    padding: 40px; /* Padding around the entire products section */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Flexible columns */
+    gap: 20px;
+    padding: 40px;
 }
 
 .product {
     background: #fff;
     border-radius: 8px;
-    overflow: hidden; /* Important to clip content that exceeds fixed height */
+    overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     text-align: center;
-    /* --- Key changes for fixed height --- */
-    height: 340px; /* Set a fixed height for each product box. Adjust as needed. */
-    display: flex; /* Enable Flexbox for vertical content alignment */
-    flex-direction: column; /* Stack items (image, heading, paragraph) vertically */
+    height: 340px; /* Fixed height for consistency */
+    display: flex;
+    flex-direction: column;
 }
 
     .product img {
-        width: 100%; /* Image fills the width of its container */
-        height: 200px; /* Set a fixed height for all product images. Adjust as needed. */
-        object-fit: cover; /* Crucial: Scales the image to cover the area, cropping if necessary */
-        flex-shrink: 0; /* Prevents the image from shrinking if content below it is too large */
+        width: 100%;
+        height: 200px; /* Fixed height for images */
+        object-fit: cover;
+        flex-shrink: 0;
     }
 
     .product h3 {
         margin: 10px 0;
         color: #b45f06;
-        padding: 0 10px; /* Add horizontal padding to the heading */
-        /* Optional: For long text, truncate with ellipsis */
+        padding: 0 10px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -205,17 +254,16 @@ nav {
 
     .product p {
         padding: 0 10px 10px;
-        /* Make the paragraph content grow to fill available space */
-        display: flex; /* Use flexbox for the content area */
-        flex-direction: column; /* Stack its own content (if any) vertically */
-        justify-content: flex-start; /* Align content to the top within its growing space */
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
     }
 
     .product .item-price {
-        margin-bottom: 8px; /* Adjust this value as needed. Could be 0, 4px, 10px, etc. */
+        margin-bottom: 8px;
     }
 
-/* Button CSS (if not fully covered by Tailwind, though yours looks good) */
+/* Button CSS (add-to-cart-btn) */
 .add-to-cart-btn {
     width: 90%;
     background-color: #22c55e;
@@ -239,28 +287,94 @@ footer {
     border-top: 1px solid #ddd;
 }
 
-.newsletter input {
-    padding: 8px;
-    width: 200px;
+/* Newsletter section */
+.newsletter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    background-color: #f8f8f8;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+    .newsletter p {
+        font-size: 1.1em;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .newsletter form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .newsletter input[type="email"],
+    .newsletter input[type="text"] {
+        flex-grow: 1;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1em;
+        color: #333;
+        outline: none;
+        transition: border-color 0.3s ease;
+    }
+
+        .newsletter input[type="email"]:focus,
+        .newsletter input[type="text"]:focus {
+            border-color: #ff6f61;
+        }
+
+.subscribe-button {
+    background-color: #ff6f61;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    min-width: 120px;
+    flex-shrink: 0;
+}
+
+    .subscribe-button:hover {
+        background-color: #e65c50;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .subscribe-button:active {
+        background-color: #cc4d44;
+        transform: translateY(1px);
+    }
+
+.newsletter input::placeholder {
+    color: #aaa;
 }
 
 .social-icons {
     margin-top: 20px;
-    /* font-size: 18px; Removed, as individual icon size is set on the 'a' tag */
-    display: flex; /* Make it a flex container to align icons */
-    justify-content: center; /* Center the icons horizontally */
-    gap: 15px; /* Space between icons */
+    display: flex;
+    justify-content: center;
+    gap: 15px;
 }
 
     .social-icons a {
-        color: #b45f06; /* Icon color */
-        font-size: 24px; /* Larger size for footer icons, adjust as needed */
-        transition: color 0.3s ease; /* Smooth hover effect */
-        text-decoration: none; /* Remove underline */
+        color: #b45f06;
+        font-size: 24px;
+        transition: color 0.3s ease;
+        text-decoration: none;
     }
 
         .social-icons a:hover {
-            color: #8c4a00; /* Darker shade on hover */
+            color: #8c4a00;
         }
 
 .copyright-content {
@@ -288,7 +402,7 @@ footer {
     padding: 30px 20px;
     border-radius: 20px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    width: 90%;
+    width: 90%; /* Responsive width */
     max-width: 500px;
     text-align: center;
     position: relative;
@@ -296,7 +410,7 @@ footer {
 
     .popup img {
         width: auto;
-        max-width: 60%;
+        max-width: 60%; /* Responsive image size */
         border-radius: 12px;
         margin-bottom: 15px;
         object-fit: cover;
@@ -335,31 +449,33 @@ footer {
 
 /* New styles for About Us and Contact Us sections */
 .section-container {
-    padding: 60px 40px; /* Adjust padding as needed */
+    padding: 60px 40px; /* Default padding */
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
     flex-direction: column; /* Default to column for mobile */
-    gap: 40px; /* Space between content blocks */
-    align-items: center; /* Center items for mobile */
+    gap: 40px;
+    align-items: center;
 }
 
 @media (min-width: 768px) { /* On medium screens and up, use row layout */
     .section-container {
         flex-direction: row;
         justify-content: space-between;
-        align-items: center; /* Changed from flex-start to center for vertical middle alignment */
+        align-items: center;
     }
 }
 
 .section-content {
-    flex: 1; /* Allows content to take available space */
-    min-width: 0; /* Prevents flex item from overflowing due to long content */
+    flex: 1;
+    min-width: 0;
+    padding: 0 10px; /* Add some horizontal padding for text content */
+    box-sizing: border-box;
 }
 
 .about-us-image {
     width: 100%;
-    max-width: 500px; /* Max width for the image */
+    max-width: 500px;
     height: auto;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
@@ -367,8 +483,8 @@ footer {
 
 .contact-map {
     width: 100%;
-    max-width: 500px; /* Max width for the map */
-    height: 300px; /* Fixed height for the map */
+    max-width: 500px;
+    height: 300px;
     border: 0;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
@@ -389,12 +505,12 @@ footer {
     margin-bottom: 20px;
     border: 1px solid #ccc;
     border-radius: 6px;
-    box-sizing: border-box; /* Include padding in width */
+    box-sizing: border-box;
     font-size: 16px;
 }
 
 .contact-form textarea {
-    resize: vertical; /* Allow vertical resizing */
+    resize: vertical;
     min-height: 100px;
 }
 
@@ -412,3 +528,321 @@ footer {
     .contact-form button:hover {
         background-color: #8c4a00;
     }
+
+
+/* --- Responsive Adjustments for Mobile (768px and below) --- */
+@media (max-width: 768px) {
+    /* General Body Adjustments */
+    body {
+        padding-top: 80px; /* Match mobile header height */
+    }
+
+    /* Header Adjustments */
+    header {
+        padding: 15px 20px;
+        height: 80px;
+    }
+
+    .header-logo {
+        max-height: 80px;
+        left: 20px;
+    }
+
+    /* Hamburger Menu (already good) */
+    .hamburger-menu {
+        display: flex;
+        margin-left: auto;
+    }
+
+    /* Mobile Navigation Specifics */
+    nav {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 70%;
+        max-width: 300px;
+        height: 100%;
+        background-color: #333;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: right 0.4s ease-in-out;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+        z-index: 1001;
+        padding-top: 80px; /* Push content below fixed header */
+        box-sizing: border-box;
+    }
+
+    /* Mobile Menu Close Button Styling */
+    .close-menu-btn {
+        display: block; /* Show the close button on mobile */
+        position: absolute; /* Position it relative to the nav */
+        top: 30px; /* Adjust as needed */
+        right: 20px; /* Adjust as needed */
+        background: none;
+        border: none;
+        font-size: 30px;
+        color: white; /* Color for the 'X' */
+        cursor: pointer;
+        z-index: 1003; /* Ensure it's on top of everything in the menu */
+        padding: 5px; /* Add some padding for easier tapping */
+    }
+
+    /* When nav has 'active' class, slide it into view */
+    nav.active {
+        right: 0;
+    }
+
+    nav a {
+        color: white;
+        font-size: 1.3em;
+        padding: 15px 20px; /* Increased horizontal padding for better touch targets and visual spacing */
+        width: 100%;
+        text-align: center;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        margin-left: 0;
+        box-sizing: border-box;
+    }
+
+        nav a:last-child {
+            border-bottom: none;
+        }
+
+        nav a:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: #ff6f61;
+        }
+
+        nav a .fab,
+        nav a .fas {
+            color: white;
+        }
+
+    body.menu-open::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    }
+
+    nav:not(.active) {
+        display: none;
+    }
+
+    /* Hero Slider Adjustments */
+    .hero-slider {
+        height: 300px;
+    }
+
+    .slide h2 {
+        font-size: 32px;
+    }
+
+    .prev-button,
+    .next-button {
+        font-size: 18px;
+        padding: 8px 12px;
+    }
+
+    .dots-container {
+        bottom: 10px;
+    }
+
+    .dot {
+        width: 10px;
+        height: 10px;
+    }
+
+    /* Products Section Adjustments */
+    .products {
+        padding: 20px;
+        grid-template-columns: 1fr;
+    }
+
+    .product {
+        height: auto;
+        padding-bottom: 15px;
+    }
+
+        .product img {
+            height: 180px;
+        }
+
+        .product h3 {
+            font-size: 1.1em;
+        }
+
+        .product p {
+            font-size: 0.9em;
+        }
+
+    /* Footer Adjustments */
+    footer {
+        padding: 20px;
+    }
+
+    .newsletter p {
+        font-size: 1em;
+    }
+
+    .newsletter form {
+        flex-direction: column;
+        max-width: 100%;
+    }
+
+    .newsletter input[type="email"],
+    .newsletter input[type="text"],
+    .subscribe-button {
+        width: 100%;
+    }
+
+    .social-icons {
+        gap: 10px;
+    }
+
+        .social-icons a {
+            font-size: 20px;
+        }
+
+    .copyright-content {
+        font-size: 12px;
+    }
+
+    /* Popup Adjustments */
+    .popup {
+        padding: 20px 15px;
+    }
+
+        .popup img {
+            max-width: 80%;
+        }
+
+        .popup h2 {
+            font-size: 22px;
+        }
+
+        .popup p {
+            font-size: 14px;
+        }
+
+        .popup .popup-button {
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .popup .close-btn {
+            font-size: 20px;
+        }
+
+    /* About Us and Contact Us sections */
+    .section-container {
+        padding: 30px 20px;
+        gap: 20px;
+    }
+
+    .section-content h2 {
+        font-size: 1.8em;
+    }
+
+    .section-content p {
+        font-size: 0.95em;
+    }
+
+    .contact-form input[type="text"],
+    .contact-form input[type="email"],
+    .contact-form textarea {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .contact-form button {
+        padding: 10px 20px;
+        font-size: 16px;
+    }
+}
+
+/* --- Responsive Adjustments for Very Small Phones (480px and below) --- */
+@media (max-width: 480px) {
+    /* Header Adjustments */
+    header {
+        padding: 10px 15px;
+        height: 70px;
+    }
+
+    .header-logo {
+        max-height: 70px;
+        left: 15px;
+    }
+
+    body {
+        padding-top: 70px;
+    }
+
+    /* Mobile Navigation Specifics */
+    nav {
+        width: 85%; /* Slightly wider menu for very small screens */
+        padding-top: 70px; /* Match new header height */
+    }
+
+        nav a {
+            font-size: 1.2em;
+            padding: 12px 15px; /* Slightly less padding for very small screens */
+        }
+
+    /* Hero Slider Adjustments */
+    .hero-slider {
+        height: 250px; /* Even shorter slider */
+    }
+
+    .slide h2 {
+        font-size: 24px; /* Even smaller heading */
+    }
+
+    /* Products Section Adjustments */
+    .products {
+        padding: 15px; /* Even less padding */
+    }
+
+    .product img {
+        height: 150px; /* Even smaller image height */
+    }
+
+    /* Footer Adjustments */
+    footer {
+        padding: 15px;
+    }
+
+    .newsletter input[type="email"],
+    .newsletter input[type="text"],
+    .subscribe-button {
+        padding: 10px 12px; /* Smaller padding for inputs/button */
+        font-size: 0.9em;
+    }
+
+    /* Popup Adjustments */
+    .popup {
+        padding: 15px 10px;
+    }
+
+        .popup h2 {
+            font-size: 20px;
+        }
+
+        .popup p {
+            font-size: 13px;
+        }
+
+    /* About Us and Contact Us sections */
+    .section-container {
+        padding: 20px 15px;
+        gap: 15px;
+    }
+
+    .section-content h2 {
+        font-size: 1.5em;
+    }
+}
