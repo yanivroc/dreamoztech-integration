@@ -11,9 +11,118 @@
 @if (Model.CurrentPost != null)
 {
     <section class="section-container">
-        <div class="section-content">
-            <h2>@Model.CurrentPost.BizName</h2>
-            <p>@Html.Raw(Model.CurrentPost.BizDesc)</p>
+        <div class="product-detail-wrapper">
+            <div class="product-info-column">
+                <h2>@Model.CurrentPost.BizName</h2>
+                <p class="product-description">@Html.Raw(Model.CurrentPost.BizDesc)</p>
+                <p class="product-price">$@Model.CurrentPost.Attributes.FirstOrDefault(x => x.Title.ToLower() == "price").Value.ToString()</p>
+                <button class="add-to-cart-btn" data-product-id="@Model.CurrentPost.BizDisplayTitle">Add to Cart</button>
+            </div>
+
+            <div class="product-slider-column">
+                <div class="product-detail-slides-container">
+                    @foreach (var pic in Model.CurrentPost.Pics)
+                    {
+                        var imagePath = new Uri(pic.PicPath);
+                        <div class="product-detail-slide">
+                            <img src="@imagePath" alt="@Model.CurrentPost.BizName">
+                        </div>
+                    }
+                </div>
+
+                <button class="product-detail-prev-button">&#10094;</button>
+                <button class="product-detail-next-button">&#10095;</button>
+                <div class="product-detail-dots-container">
+                    @for (int i = 0; i < Model.CurrentPost.Pics.Count; i++)
+                    {
+                        <span class="product-detail-dot" data-slide-index="@i"></span>
+                    }
+                </div>
+            </div>
         </div>
     </section>
+}
+@section Scripts {
+    <script>
+        // Reusable slider initialization function
+        function initializeSlider(containerSelector, slideSelector, prevBtnSelector, nextBtnSelector, dotsContainerSelector, dotSelector) {
+            const slidesContainer = document.querySelector(containerSelector);
+            const slides = document.querySelectorAll(slideSelector);
+            const prevButton = document.querySelector(prevBtnSelector);
+            const nextButton = document.querySelector(nextBtnSelector);
+            const dotsContainer = document.querySelector(dotsContainerSelector);
+            const dots = document.querySelectorAll(dotSelector);
+
+            // If no slider container or no slides, hide controls and exit
+            if (!slidesContainer || slides.length === 0) {
+                if (prevButton) prevButton.style.display = 'none';
+                if (nextButton) nextButton.style.display = 'none';
+                if (dotsContainer) dotsContainer.style.display = 'none';
+                return;
+            }
+
+            let currentIndex = 0;
+            const totalSlides = slides.length;
+
+            function updateSlider() {
+                slidesContainer.style.transform = `translateX(-${currentIndex * 100}%)`;
+                if (dotsContainer) { // Only update dots if they exist
+                    updateDots();
+                }
+            }
+
+            function updateDots() {
+                dots.forEach((dot, index) => {
+                    if (index === currentIndex) {
+                        dot.classList.add('active');
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                });
+            }
+
+            if (nextButton) {
+                nextButton.addEventListener('click', () => {
+                    currentIndex = (currentIndex + 1) % totalSlides;
+                    updateSlider();
+                });
+            }
+
+            if (prevButton) {
+                prevButton.addEventListener('click', () => {
+                    currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                    updateSlider();
+                });
+            }
+
+            if (dotsContainer) {
+                dots.forEach(dot => {
+                    dot.addEventListener('click', (event) => {
+                        const slideIndex = parseInt(event.target.dataset.slideIndex);
+                        currentIndex = slideIndex;
+                        updateSlider();
+                    });
+                });
+            }
+
+            // Initialize the slider state
+            updateSlider();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the main hero slider (if it's on this page or in _Layout)
+            // You might want to move this call to the Index.cshtml if the hero slider is only there.
+            // initializeSlider('.slides-container', '.slide', '.prev-button', '.next-button', '.dots-container', '.dot');
+
+            // Initialize the Product Detail Slider
+            initializeSlider(
+                '.product-detail-slides-container',
+                '.product-detail-slide',
+                '.product-detail-prev-button',
+                '.product-detail-next-button',
+                '.product-detail-dots-container',
+                '.product-detail-dot'
+            );
+        });
+    </script>
 }
