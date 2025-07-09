@@ -231,7 +231,7 @@ nav {
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     text-align: center;
-    height: 380px; /* Fixed height for consistency */
+    height: 410px; /* Fixed height for consistency */
     display: flex;
     flex-direction: column;
 }
@@ -248,6 +248,7 @@ nav {
         color: #b45f06;
         padding: 0 10px;
         max-height: 30px;
+        display: block;
     }
 
     .product p {
