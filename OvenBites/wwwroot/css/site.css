@@ -1,3 +1,4 @@
+/* General Body Styles */
 body {
     margin: 0;
     font-family: 'Open Sans', sans-serif;
@@ -20,7 +21,6 @@ header {
     width: 100%; /* Ensures it spans the full width of the viewport */
     z-index: 1000; /* High z-index to ensure it stays on top of all other content */
     /* --- END CRUCIAL CHANGES --- */
-
     height: 100px; /* Explicit height for the header, adjust based on your needs */
     box-sizing: border-box; /* Include padding in the height calculation */
 }
@@ -34,7 +34,6 @@ header {
 .header-logo {
     max-height: 120px; /* Your desired height for the logo */
     width: auto; /* Ensures the logo's aspect ratio is maintained */
-
     position: absolute; /* Take logo out of normal document flow */
     z-index: 9999; /* Ensure logo is on top of everything */
     /* Positioning properties - ADJUST THESE CAREFULLY */
@@ -92,7 +91,6 @@ nav {
     /* Subtract the overlap amount from the header's height. E.g., if header is 100px and you want 30px overlap: */
     /* margin-top: 70px; */
     margin-top: 100px; /* Default: no overlap, just pushes content below fixed header */
-
     z-index: 5; /* Ensure slider is below fixed header but above other sections */
 }
 
@@ -170,31 +168,67 @@ nav {
 /* Products Section Styles */
 .products {
     display: grid;
+    /* This creates a responsive grid that tries to fit as many 250px columns as possible */
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    padding: 40px;
+    gap: 20px; /* Space between grid items */
+    padding: 40px; /* Padding around the entire products section */
 }
 
 .product {
     background: #fff;
     border-radius: 8px;
-    overflow: hidden;
+    overflow: hidden; /* Important to clip content that exceeds fixed height */
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     text-align: center;
+    /* --- Key changes for fixed height --- */
+    height: 340px; /* Set a fixed height for each product box. Adjust as needed. */
+    display: flex; /* Enable Flexbox for vertical content alignment */
+    flex-direction: column; /* Stack items (image, heading, paragraph) vertically */
 }
 
     .product img {
-        width: 100%;
-        height: auto;
+        width: 100%; /* Image fills the width of its container */
+        height: 200px; /* Set a fixed height for all product images. Adjust as needed. */
+        object-fit: cover; /* Crucial: Scales the image to cover the area, cropping if necessary */
+        flex-shrink: 0; /* Prevents the image from shrinking if content below it is too large */
     }
 
     .product h3 {
         margin: 10px 0;
         color: #b45f06;
+        padding: 0 10px; /* Add horizontal padding to the heading */
+        /* Optional: For long text, truncate with ellipsis */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .product p {
         padding: 0 10px 10px;
+        /* Make the paragraph content grow to fill available space */
+        display: flex; /* Use flexbox for the content area */
+        flex-direction: column; /* Stack its own content (if any) vertically */
+        justify-content: flex-start; /* Align content to the top within its growing space */
+    }
+
+    .product .item-price {
+        margin-bottom: 8px; /* Adjust this value as needed. Could be 0, 4px, 10px, etc. */
+    }
+
+/* Button CSS (if not fully covered by Tailwind, though yours looks good) */
+.add-to-cart-btn {
+    width: 90%;
+    background-color: #22c55e;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 12px;
+    transition: background-color 0.3s ease;
+    display: block;
+    margin: 0 auto;
+}
+
+    .add-to-cart-btn:hover {
+        background-color: #16a34a;
     }
 
 /* Footer */
@@ -297,4 +331,84 @@ footer {
         border: none;
         font-size: 24px;
         cursor: pointer;
+    }
+
+/* New styles for About Us and Contact Us sections */
+.section-container {
+    padding: 60px 40px; /* Adjust padding as needed */
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column; /* Default to column for mobile */
+    gap: 40px; /* Space between content blocks */
+    align-items: center; /* Center items for mobile */
+}
+
+@media (min-width: 768px) { /* On medium screens and up, use row layout */
+    .section-container {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center; /* Changed from flex-start to center for vertical middle alignment */
+    }
+}
+
+.section-content {
+    flex: 1; /* Allows content to take available space */
+    min-width: 0; /* Prevents flex item from overflowing due to long content */
+}
+
+.about-us-image {
+    width: 100%;
+    max-width: 500px; /* Max width for the image */
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.contact-map {
+    width: 100%;
+    max-width: 500px; /* Max width for the map */
+    height: 300px; /* Fixed height for the map */
+    border: 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.contact-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #b45f06;
+}
+
+.contact-form input[type="text"],
+.contact-form input[type="email"],
+.contact-form textarea {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box; /* Include padding in width */
+    font-size: 16px;
+}
+
+.contact-form textarea {
+    resize: vertical; /* Allow vertical resizing */
+    min-height: 100px;
+}
+
+.contact-form button {
+    background-color: #b45f06;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+}
+
+    .contact-form button:hover {
+        background-color: #8c4a00;
     }
