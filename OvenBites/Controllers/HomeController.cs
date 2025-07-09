@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OvenBites.Api;
 using OvenBites.Models;
 
@@ -17,12 +19,17 @@ namespace OvenBites.Controllers
             _memoryCache = memoryCache;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string pageName)
         {
             const string cacheKeyProduct = "Product";
             const string cacheKeyMember = "Member";
             const string cacheKeyPost = "Post";
             const string cacheKeyWeb = "Web";
+
+            if (string.IsNullOrEmpty(pageName))
+            {
+                pageName = "home";
+            }
 
             string token = await _apiService.GetTokenAsync();
 
@@ -57,7 +64,40 @@ namespace OvenBites.Controllers
                 _memoryCache.Set(cacheKeyWeb, webResponse, TimeSpan.FromHours(24));
             }
             ViewData["Web"] = webResponse;
-            return View();
+
+            var domainPath = "https://dreamoztech.com/";
+            var productJson = ViewData["Product"] as string;
+            var memberJson = ViewData["Member"] as string;
+            var postJson = ViewData["Post"] as string;
+            var webJson = ViewData["Web"] as string;
+            //member
+            var rootObject = JsonConvert.DeserializeObject<ResponseViewModel>(memberJson);
+            var memberDetailObject = rootObject?.Member;
+            var memberFullName = memberDetailObject.MemberFullName.Replace(" ", "");
+            var memberLogoImagePath = new Uri(domainPath + memberDetailObject.ProfilePicture);
+            //product
+            var productDetailObject = JsonConvert.DeserializeObject<ResponseViewModel>(productJson);
+            var productList = productDetailObject.Products.Posts.ToList();
+            //web
+            var webDetailObject = JsonConvert.DeserializeObject<ResponseViewModel>(webJson);
+            var web = webDetailObject.Webs.FirstOrDefault();
+            List<MenuItemRoot> menuItems = JsonConvert.DeserializeObject<List<MenuItemRoot>>(web.MenuItems);
+            var homePage = web.WebPages.FirstOrDefault(x => x.PagePath == "Home");
+            var cookiesPage = web.WebPages.FirstOrDefault(x => x.PagePath == "Cookies");
+            var aboutPage = web.WebPages.FirstOrDefault(x => x.PagePath == "About");
+            var contactPage = web.WebPages.FirstOrDefault(x => x.PagePath == "Contact");
+            var termsPage = web.WebPages.FirstOrDefault(x => x.PagePath == "Terms");
+            var currentPage = web.WebPages.FirstOrDefault(x => x.PagePath.ToLower() == pageName.ToLower()); 
+            //post
+            var postDetailObject = JsonConvert.DeserializeObject<ResponseViewModel>(postJson);
+            var sliderPost = postDetailObject.Posts.FirstOrDefault(x => x.BizDisplayTitle == "Slider-Ovenbites");
+            var popupPost = postDetailObject.Posts.FirstOrDefault(x => x.BizDisplayTitle == "Flavor-of-the-Month");
+            var popupPostImage = popupPost.Pics.FirstOrDefault();
+            var popupPostImagePath = new Uri(popupPostImage.PicPath);
+            List<PicDto> sliderPics = sliderPost.Pics.ToList();
+
+            DisplayViewModel vm = new DisplayViewModel(memberDetailObject, memberFullName, memberLogoImagePath, productList, menuItems, homePage, cookiesPage, aboutPage, contactPage, termsPage, sliderPost, popupPost, popupPostImagePath, sliderPics, currentPage);  
+            return View(vm);
         }
 
         public IActionResult Privacy()

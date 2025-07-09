@@ -80,14 +80,10 @@ app.UseCors(); // Place after UseRouting, before Map* or UseEndpoints if using d
 
 // Map endpoints
 app.MapControllers(); // Maps attribute-routed controllers
-app.MapDefaultControllerRoute(); // Maps the default {controller=Home}/{action=Index}/{id?} route for MVC views
-
-// The following MapDefaultControllerRoute is sufficient, you don't need the UseEndpoints block for just default route
-// app.UseEndpoints(endpoints =>
-// {
-//     endpoints.MapControllerRoute(
-//         name: "default",
-//         pattern: "{controller=Home}/{action=Index}/{id?}");
-// });
+app.MapControllerRoute(
+    name: "pageRoute",
+    pattern: "{pageName?}", // {pageName?} makes the pageName segment optional
+    defaults: new { controller = "Home", action = "Index" }
+);
 
 app.Run();

@@ -2,7 +2,7 @@
 
 namespace OvenBites.Api
 {
-    public class MenuItemModel
+    public class MenuItemRoot
     {
         [JsonProperty("id")]
         public int Id { get; set; }
