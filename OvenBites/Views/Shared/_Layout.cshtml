@@ -74,7 +74,7 @@
             var itemImageUrl = new Uri(itemImage.PicPath);
             <div class="product">
                 <img src="@itemImageUrl" alt="@item.BizName">
-                <h3>@item.BizName</h3>
+                <h3><a href="/@item.BizDisplayTitle">@item.BizName</a></h3>
                 <p class="item-price">@itemPrice</p>
                 <button class="add-to-cart-btn w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition duration-300">Add to Cart</button>
             </div>
@@ -289,26 +289,85 @@
         // --- End of DOMContentLoaded block ---
 
 
-        // Functions defined outside of DOMContentLoaded are globally accessible.
-        // This is where your popup and email validation functions should go.
+            // Global reference for the popup element, initialized once DOM is ready
+        let popupOverlayElement;
 
-        // Show popup on load
-        // This runs after the entire window (including images, iframes) has loaded.
-        window.onload = function() {
-            // Ensure the popup overlay element with id="popup" exists in your HTML
-            const popupOverlayElement = document.getElementById("popup"); // Changed to popupOverlayElement for clarity
-            if (popupOverlayElement) {
-                popupOverlayElement.style.display = "flex"; // Use "flex" to center content as per CSS
+        /**
+         * Attempts to show the popup if it hasn't been shown in the current session.
+         * Sets a sessionStorage flag if it shows the popup.
+         */
+        function showPopupIfNeverShown() {
+            // Lazy-initialize popupOverlayElement if not already set
+            if (!popupOverlayElement) {
+                popupOverlayElement = document.getElementById("popup");
+                if (!popupOverlayElement) { // If element doesn't exist, do nothing
+                    console.warn("Popup element with ID 'popup' not found.");
+                    return;
+                }
             }
-        };
 
-        // Close popup
-        function closePopup() {
-            const popupOverlayElement = document.getElementById("popup");
-            if (popupOverlayElement) {
-                popupOverlayElement.style.display = "none";
+            const hasPopupBeenShown = sessionStorage.getItem('hasPopupBeenShown');
+
+            if (!hasPopupBeenShown) {
+                popupOverlayElement.style.display = "flex"; // Show the popup
+                sessionStorage.setItem('hasPopupBeenShown', 'true'); // Mark as shown for this session
+                console.log("Popup shown for the first time this session.");
+            } else {
+                console.log("Popup already shown this session, skipping.");
             }
         }
+
+        /**
+         * Closes the popup. This also ensures the sessionStorage flag is set
+         * so it doesn't reappear via exit-intent if closed manually.
+         */
+        function closePopup() {
+            // Lazy-initialize popupOverlayElement if not already set
+            if (!popupOverlayElement) {
+                popupOverlayElement = document.getElementById("popup");
+                if (!popupOverlayElement) return;
+            }
+
+            popupOverlayElement.style.display = "none";
+            // Ensure flag is set, even if manually closed, to prevent exit-intent re-trigger
+            sessionStorage.setItem('hasPopupBeenShown', 'true');
+            console.log("Popup closed by user.");
+        }
+
+        // --- MAIN POPUP LOGIC INITIALIZATION ---
+
+        // 1. Show popup on initial page load (once per session)
+        window.onload = function() {
+            console.log("Window loaded. Checking popup status...");
+            showPopupIfNeverShown();
+        };
+
+        // 2. Implement Exit-Intent Popup Logic (runs only after DOM is ready)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get popup element reference here once DOM is ready for other event listeners
+            popupOverlayElement = document.getElementById("popup");
+
+            // Only add exit-intent if the popup element actually exists
+            if (popupOverlayElement) {
+                document.addEventListener('mouseout', function(e) {
+                    // Check if the mouse is moving towards the top of the browser window
+                    // e.clientY < 0 means the cursor is outside the viewport (at the top)
+                    // e.relatedTarget === null means the cursor is leaving the document entirely
+                    // (e.g., going to browser chrome, another tab, or closing button)
+                    if (e.clientY < 0 && e.relatedTarget === null) {
+                        console.log("Exit intent detected.");
+                        popupOverlayElement.style.display = "flex";
+                    }
+                });
+
+                // Optional: You could also consider 'blur' event for tab switching,
+                // but it's less precise for "exit intent" as it triggers on any focus loss.
+                //window.addEventListener('blur', function() {
+                    // console.log("Window blurred.");
+                    // popupOverlayElement.style.display = "flex";
+                //});
+            }
+        });
 
         // Close popup and navigate to #products (assuming 'cookies' was a typo and you meant products)
         function orderNowAndNavigate() {
