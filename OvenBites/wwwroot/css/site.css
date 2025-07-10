@@ -1,7 +1,14 @@
 /* General Body Styles */
+html, body {
+    overflow-x: hidden;
+}
+
+body {
+    position: relative;
+}
+
 body {
     margin: 0;
-    font-family: 'Open Sans', sans-serif;
     background-color: #fff8f5;
     color: #333;
     /* CRUCIAL: Push content down by header height */
@@ -1080,8 +1087,8 @@ footer {
     background-color: #ff0000; /* Red background */
     color: white; /* White text */
     border-radius: 50%; /* Make it round */
-    padding: 2px 6px; /* Adjust padding as needed */
-    font-size: 0.75em; /* Smaller font size */
+    padding: 2px 4px; /* Adjust padding as needed */
+    font-size: 14px; /* Smaller font size */
     position: relative; /* Position relative to its normal place in the flow */
     top: -8px; /* Move it up slightly */
     left: -5px; /* Move it left slightly to overlap the icon */

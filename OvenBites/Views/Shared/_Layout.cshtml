@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>@Model.MemberFullName</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
@@ -67,6 +67,7 @@
             @RenderBody()
         </main>
     </div>
+
 
     <!-- Main Content Area - Shopping Cart -->
     <main class="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
@@ -651,73 +652,74 @@
 
             let cartContentHtml = '';
             if (cart.length === 0) {
-                cartContentHtml = '<p class="text-center text-gray-600 text-lg">Your cart is empty.</p>';
+                cartContentHtml = '<h2 class="text-center text-gray-600 text-lg custom-h1">Your cart is empty.</h2>';
             } else {
                 cartContentHtml = `
-                    <table class="cart-table">
-                        <thead>
-                            <tr>
-                                <th class="w-2/5">Product</th>
-                                <th class="w-1/5">Price</th>
-                                <th class="w-1/5">Quantity</th>
-                                <th class="w-1/5 text-right">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${cart.map(item => `
-                                <tr>
-                                    <td class="product-col">
-                                        <img
-                                            src="${item.imagePath}"
-                                            alt="${item.name}"
-                                            class="w-20 h-20 object-cover rounded-md flex-shrink-0"
-                                            onerror="this.onerror=null; this.src='https://placehold.co/80x80/CCCCCC/000000?text=No+Image';"
-                                        />
-                                        <div>
-                                            <h3 class="text-lg font-semibold text-gray-900">${item.name}</h3>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <p class="text-gray-800 font-medium">$${item.price.toFixed(2)}</p>
-                                    </td>
-                                    <td>
-                                        <div class="flex items-center space-x-2">
-                                            <div class="quantity-controls">
-                                                <button
-                                                    data-item-path="${item.itemPath}"
-                                                    data-action="decrease"
-                                                    ${item.quantity <= 1 ? 'disabled' : ''}
-                                                    class="quantity-btn"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus"><path d="M5 12h14"/></svg>
-                                                </button>
-                                                <span class="text-lg font-medium text-gray-800 text-center">
-                                                    ${item.quantity}
-                                                </span>
-                                                <button
-                                                    data-item-path="${item.itemPath}"
-                                                    data-action="increase"
-                                                    ${item.quantity >= 6 ? 'disabled' : ''}
-                                                    class="quantity-btn"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-                                                </button>
-                                                <button
-                                                    data-item-path="${item.itemPath}"
-                                                    class="remove-item-btn"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
-                                                </button>
-                                             </div>
-                                        </div>
-                                    </td>
-                                    <td class="text-right">
-                                        <p class="text-lg font-semibold text-indigo-600">$${(item.price * item.quantity).toFixed(2)}</p>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+                            <table class="cart-table">
+                                <thead>
+                                    <tr>
+                                        <th class="w-2/5">Product</th>
+                                        <th class="w-1/5">Price</th>
+                                        <th class="w-1/5">Quantity</th>
+                                        <th class="w-1/5 text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${cart.map(item => `
+                                        <tr>
+                                            <td class="product-col" data-label="Product">
+                                                <img
+                                                    src="${item.imagePath}"
+                                                    alt="${item.name}"
+                                                    class="w-20 h-20 object-cover rounded-md flex-shrink-0"
+                                                    onerror="this.onerror=null; this.src='https://placehold.co/80x80/CCCCCC/000000?text=No+Image';"
+                                                />
+                                                <div>
+                                                    <h3 class="text-lg font-semibold text-gray-900">${item.name}</h3>
+                                                </div>
+                                            </td>
+                                            <td data-label="Price">
+                                                <p class="text-gray-800 font-medium">$${item.price.toFixed(2)}</p>
+                                            </td>
+                                            <td data-label="Quantity">
+                                                <div class="flex items-center space-x-2">
+                                                    <div class="quantity-controls">
+                                                        <button
+                                                            data-item-path="${item.itemPath}"
+                                                            data-action="decrease"
+                                                            ${item.quantity <= 1 ? 'disabled' : ''}
+                                                            class="quantity-btn"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus"><path d="M5 12h14"/></svg>
+                                                        </button>
+                                                        <span class="text-lg font-medium text-gray-800 text-center">
+                                                            ${item.quantity}
+                                                        </span>
+                                                        <button
+                                                            data-item-path="${item.itemPath}"
+                                                            data-action="increase"
+                                                            ${item.quantity >= 6 ? 'disabled' : ''}
+                                                            class="quantity-btn"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                                                        </button>
+                                                        <button
+                                                            data-item-path="${item.itemPath}"
+                                                            class="remove-item-btn"
+                                                            data-label="Remove"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-right" data-label="Total">
+                                                <p class="text-lg font-semibold text-indigo-600">$${(item.price * item.quantity).toFixed(2)}</p>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
                 `;
             }
 
