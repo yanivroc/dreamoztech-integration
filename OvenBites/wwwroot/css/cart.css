@@ -1,0 +1,171 @@
+﻿.custom-h1 {
+    text-align: center;
+}
+
+.custom-a {
+    text-decoration: none;
+}
+
+.cart-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+    .cart-table th,
+    .cart-table td {
+        padding: 16px;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .cart-table th {
+        background-color: #f1f5f9;
+        color: #4b5563;
+        font-weight: 600;
+    }
+
+    .cart-table td {
+        background-color: white;
+        color: #374151;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .cart-table tr:hover td {
+        background-color: #f9fafb;
+    }
+
+.product-col {
+    display: flex;
+    align-items: center;
+}
+
+    .product-col img {
+        width: 60px;
+        height: 60px;
+        object-cover: true;
+        border-radius: 8px;
+        margin-right: 12px;
+    }
+
+    .product-col h3 {
+        font-size: 16px;
+        font-weight: 500;
+        color: #1f2937;
+    }
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quantity-btn {
+    background-color: #e5e7eb;
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    .quantity-btn:hover {
+        background-color: #d1d5db;
+    }
+
+    .quantity-btn:disabled {
+        background-color: #d1d5db;
+        cursor: not-allowed;
+    }
+
+.remove-item-btn {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+    .remove-item-btn:hover {
+        color: #dc2626;
+    }
+
+/* Summary Row adjustments */
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    padding: 0 1rem; /* Add padding for spacing */
+}
+
+    .summary-row span {
+        color: #374151;
+    }
+
+/* Container for Summary Section */
+.cart-summary-section {
+    max-width: 800px; /* Limit the width of the summary section */
+    margin: 0 auto; /* Center the content */
+    padding: 0 1rem; /* Add padding for spacing */
+    text-align: center; /* Center the text */
+}
+
+.summary-action-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 16px; /* Add some space from the summary */
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-continue {
+    background-color: #e0e7ff;
+    color: #4f46e5;
+    border: 1px solid #c7d2fe;
+}
+
+    .btn-continue:hover {
+        background-color: #c7d2fe;
+    }
+
+.btn-checkout {
+    background-color: #4f46e5;
+    color: white;
+    border: 1px solid #4f46e5;
+}
+
+    .btn-checkout:hover {
+        background-color: #4338ca;
+    }
+
+.text-indigo-600 {
+    color: #4f46e5;
+}
+
+.text-gray-600 {
+    color: #4b5563;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+/* Container Styling */
+#cart-content-container {
+    width: 100%;
+    max-width: 1200px; /* Control max width of cart */
+    margin: 0 auto; /* Center the container */
+    padding: 20px; /* Add padding for spacing */
+}

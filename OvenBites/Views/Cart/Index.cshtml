@@ -1,0 +1,260 @@
+﻿<!-- Main Content Area - Shopping Cart -->
+<main class="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+    <h1 class="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-8 custom-h1">Your Shopping Cart</h1>
+
+    <!-- Cart Content Container -->
+    <div id="cart-content-container" class="max-w-5xl mx-auto">
+        <!-- Cart items table will be injected here by JavaScript -->
+    </div>
+
+    <!-- Summary and Checkout Section -->
+    <div class="cart-summary-section">
+        <!-- Centered summary -->
+        <div class="summary-row">
+            <span>Subtotal</span>
+            <span id="subtotal-amount">$0.00</span>
+        </div>
+        <div class="summary-row total">
+            <span>Total</span>
+            <span id="total-amount">$0.00</span>
+        </div>
+
+        <div class="summary-action-buttons">
+            <a href="/home" class="btn btn-checkout custom-a">Continue Shopping</a>
+            <a href="/checkout" class="btn btn-checkout custom-a">Checkout</a>
+        </div>
+    </div>
+</main>
+
+
+<script>
+    console.log("Cart page script loaded."); // Added for debugging
+
+    // Get references to DOM elements
+    const cartContentDiv = document.getElementById('cart-content-container'); // Updated to target the new container
+    const subtotalAmountSpan = document.getElementById('subtotal-amount');
+    const totalAmountSpan = document.getElementById('total-amount');
+    const countdownTimerSpan = document.getElementById('countdown-timer');
+    const cartItemCountSpan = document.getElementById('cartItemCount'); // From navigation
+
+    let countdownInterval;
+    const RESERVATION_DURATION = 16 * 60; // 16 minutes in seconds
+
+    /**
+     * Retrieves the current cart items from sessionStorage.
+     */
+    function getCartItems() {
+        try {
+            const cartJson = sessionStorage.getItem(CART_STORAGE_KEY);
+            return cartJson ? JSON.parse(cartJson) : [];
+        } catch (e) {
+            console.error("Error parsing cart from sessionStorage:", e);
+            return [];
+        }
+    }
+
+    /**
+     * Saves the given cart items to sessionStorage.
+     */
+    function saveCartItems(cart) {
+        try {
+            sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+        } catch (e) {
+            console.error("Error saving cart to sessionStorage:", e);
+        }
+    }
+
+    /**
+     * Updates the total item count displayed on the cart icon.
+     */
+    function updateCartCount() {
+        const cart = getCartItems();
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        if (cartItemCountSpan) {
+            cartItemCountSpan.textContent = totalItems;
+            if (totalItems > 0) {
+                cartItemCountSpan.classList.remove('hidden');
+            } else {
+                cartItemCountSpan.classList.add('hidden');
+            }
+        }
+    }
+
+    /**
+     * Updates the quantity of a specific item in the cart.
+     */
+    function updateQuantity(itemPath, newQuantity) {
+        let cart = getCartItems();
+        cart = cart.map(item => {
+            if (item.itemPath === itemPath) {
+                const quantity = Math.max(1, Math.min(6, newQuantity));
+                return { ...item, quantity };
+            }
+            return item;
+        }).filter(item => item.quantity > 0);
+
+        saveCartItems(cart);
+        updateCartCount();
+        renderCart();
+    }
+
+    /**
+     * Removes an item from the cart.
+     */
+    function removeItem(itemPath) {
+        let cart = getCartItems();
+        cart = cart.filter(item => item.itemPath !== itemPath);
+        saveCartItems(cart);
+        updateCartCount();
+        renderCart();
+    }
+
+    /**
+     * Displays a custom message box instead of alert().
+     */
+    function showMessageBox(message) {
+        const overlay = document.createElement('div');
+        overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        overlay.id = 'message-box-overlay';
+
+        const messageBox = document.createElement('div');
+        messageBox.className = 'bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center';
+        messageBox.innerHTML = `
+            <p class="text-lg font-semibold text-gray-800 mb-4">${message}</p>
+            <button id="messageBoxCloseBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-md transition duration-300">
+                OK
+            </button>
+        `;
+
+        overlay.appendChild(messageBox);
+        document.body.appendChild(overlay);
+
+        document.getElementById('messageBoxCloseBtn').addEventListener('click', () => {
+            document.body.removeChild(overlay);
+        });
+    }
+
+    /**
+     * Initializes the countdown timer.
+     */
+    function initCountdownTimer() {
+        let timeLeft = sessionStorage.getItem('cartReservationTimeLeft');
+        if (timeLeft === null || isNaN(parseInt(timeLeft))) {
+            timeLeft = RESERVATION_DURATION;
+        } else {
+            timeLeft = parseInt(timeLeft);
+        }
+
+        if (timeLeft <= 0) {
+            countdownTimerSpan.textContent = "00:00";
+            return;
+        }
+    }
+
+        function renderCart() {
+        const cart = getCartItems();  // Retrieve cart items from sessionStorage
+        let subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        let total = subtotal;
+
+        let cartContentHtml = '';
+        if (cart.length === 0) {
+            cartContentHtml = '<p class="text-center text-gray-600 text-lg">Your cart is empty.</p>';
+        } else {
+            cartContentHtml = `
+                <table class="cart-table">
+                    <thead>
+                        <tr>
+                            <th class="w-2/5">Product</th>
+                            <th class="w-1/5">Price</th>
+                            <th class="w-1/5">Quantity</th>
+                            <th class="w-1/5 text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${cart.map(item => `
+                            <tr>
+                                <td class="product-col">
+                                    <img
+                                        src="${item.imagePath}"
+                                        alt="${item.name}"
+                                        class="w-20 h-20 object-cover rounded-md flex-shrink-0"
+                                        onerror="this.onerror=null; this.src='https://placehold.co/80x80/CCCCCC/000000?text=No+Image';"
+                                    />
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-gray-900">${item.name}</h3>
+                                    </div>
+                                </td>
+                                <td>
+                                    <p class="text-gray-800 font-medium">$${item.price.toFixed(2)}</p>
+                                </td>
+                                <td>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="quantity-controls">
+                                            <button
+                                                data-item-path="${item.itemPath}"
+                                                data-action="decrease"
+                                                ${item.quantity <= 1 ? 'disabled' : ''}
+                                                class="quantity-btn"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus"><path d="M5 12h14"/></svg>
+                                            </button>
+                                            <span class="text-lg font-medium text-gray-800 text-center">
+                                                ${item.quantity}
+                                            </span>
+                                            <button
+                                                data-item-path="${item.itemPath}"
+                                                data-action="increase"
+                                                ${item.quantity >= 6 ? 'disabled' : ''}
+                                                class="quantity-btn"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                                            </button>
+                                            <button
+                                                data-item-path="${item.itemPath}"
+                                                class="remove-item-btn"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                                            </button>
+                                         </div>
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <p class="text-lg font-semibold text-indigo-600">$${(item.price * item.quantity).toFixed(2)}</p>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        cartContentDiv.innerHTML = cartContentHtml;
+
+        // Update subtotal and total amounts
+        if (subtotalAmountSpan) subtotalAmountSpan.textContent = `$${subtotal.toFixed(2)}`;
+        if (totalAmountSpan) totalAmountSpan.textContent = `$${total.toFixed(2)}`;
+
+        // Re-attach event listeners for dynamically added elements
+        document.querySelectorAll('.quantity-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const itemPath = event.currentTarget.dataset.itemPath;
+                const action = event.currentTarget.dataset.action;
+                let currentQuantity = parseInt(event.currentTarget.closest('.quantity-controls').querySelector('span').textContent);
+                updateQuantity(itemPath, currentQuantity + (action === 'increase' ? 1 : -1));
+            });
+        });
+
+        document.querySelectorAll('.remove-item-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const itemPath = event.currentTarget.dataset.itemPath;
+                removeItem(itemPath);
+            });
+        });
+    }
+
+    // Ensure cart is rendered when the page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        renderCart();
+    });
+</script>
+

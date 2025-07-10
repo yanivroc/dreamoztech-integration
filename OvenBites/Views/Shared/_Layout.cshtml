@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@Model.MemberFullName</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Open+Sans&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
@@ -23,7 +24,7 @@
             {
                 <a href="#@item.Http">@item.Title</a>
             }
-            <a href="" aria-label="Shopping Cart">
+            <a href="/cart" aria-label="Shopping Cart">
                 <i class="fas fa-shopping-cart"></i>
             </a>
             <a href="@Model.MemberDetailObject.FacebookProfile" target="_blank" aria-label="Facebook">
@@ -76,7 +77,7 @@
                 <img src="@itemImageUrl" alt="@item.BizName">
                 <h3><a href="/@item.BizDisplayTitle">@item.BizName</a></h3>
                 <p class="item-price">@itemPrice</p>
-                <button class="add-to-cart-btn w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition duration-300">Add to Cart</button>
+                <button class="add-to-cart-btn w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition duration-300" onclick="addToCart('@item.BizName', @itemPrice, '@item.BizDisplayTitle', '@itemImageUrl')">Add to Cart</button>
             </div>
         }
     </section>
@@ -342,33 +343,6 @@
             showPopupIfNeverShown();
         };
 
-        // 2. Implement Exit-Intent Popup Logic (runs only after DOM is ready)
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get popup element reference here once DOM is ready for other event listeners
-            popupOverlayElement = document.getElementById("popup");
-
-            // Only add exit-intent if the popup element actually exists
-            if (popupOverlayElement) {
-                document.addEventListener('mouseout', function(e) {
-                    // Check if the mouse is moving towards the top of the browser window
-                    // e.clientY < 0 means the cursor is outside the viewport (at the top)
-                    // e.relatedTarget === null means the cursor is leaving the document entirely
-                    // (e.g., going to browser chrome, another tab, or closing button)
-                    if (e.clientY < 0 && e.relatedTarget === null) {
-                        console.log("Exit intent detected.");
-                        popupOverlayElement.style.display = "flex";
-                    }
-                });
-
-                // Optional: You could also consider 'blur' event for tab switching,
-                // but it's less precise for "exit intent" as it triggers on any focus loss.
-                //window.addEventListener('blur', function() {
-                    // console.log("Window blurred.");
-                    // popupOverlayElement.style.display = "flex";
-                //});
-            }
-        });
-
         // Close popup and navigate to #products (assuming 'cookies' was a typo and you meant products)
         function orderNowAndNavigate() {
             closePopup();
@@ -423,6 +397,61 @@
             } catch (error) {
                 console.error('Subscription Error:', error);
                 alert('There was an error subscribing: ' + error.message + '. Please try again later.');
+            }
+        }
+
+        // Add to cart
+         function addToCart(itemName, itemPrice, itemPath, itemImageUrl) {
+            let cart = getCartItems();
+            const existingItem = cart.find(item => item.itemPath === itemPath); // Check if item already in cart
+
+            if (existingItem) {
+                // If item exists and quantity is less than 6, increment quantity
+                if (existingItem.quantity < 6) {
+                    existingItem.quantity++;
+                } else {
+                    // Maximum quantity reached, you might want to show a user-friendly message here
+                    console.log(`Maximum quantity (6) reached for ${itemName}.`);
+                    // In a full application, you might call a custom message box here.
+                }
+            } else {
+                // If item does not exist, add it with quantity 1
+                // Directly use the passed itemName, itemPrice, and itemPath
+                cart.push({
+                    name: itemName,
+                    price: itemPrice,
+                    itemPath: itemPath, // Ensure this property name matches your find logic
+                    quantity: 1,
+                    imagePath: itemImageUrl
+                });
+            }
+
+            saveCartItems(cart); // Save the updated cart to sessionStorage
+            // In a full application, you would also call a function here to update the cart item count displayed in the navigation.
+            // e.g., updateCartCount();
+            console.log('Current Cart:', getCartItems()); // For demonstration, log the cart
+        }
+
+        // You'll also need these helper functions and the storage key defined:
+        const CART_STORAGE_KEY = 'shoppingCartSession'; // Or 'shoppingCart' if you prefer localStorage
+
+       // Get Cart Items
+        function getCartItems() {
+            try {
+                const cartJson = sessionStorage.getItem(CART_STORAGE_KEY);
+                return cartJson ? JSON.parse(cartJson) : [];
+            } catch (e) {
+                console.error("Error parsing cart from sessionStorage:", e);
+                return [];
+            }
+        }
+
+        // Save Cart Items
+        function saveCartItems(cart) {
+            try {
+                sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+            } catch (e) {
+                console.error("Error saving cart to sessionStorage:", e);
             }
         }
     </script>

@@ -1,21 +1,19 @@
-using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using OvenBites.Api;
 using OvenBites.Models;
 using OvenBites.Services;
+using System.Diagnostics;
 
 namespace OvenBites.Controllers
 {
-    public class HomeController : Controller
+    public class CartController : Controller
     {
         private readonly IDataService _dataService;
-
-        public HomeController(IDataService dataService)
+        public CartController(IDataService dataService)
         {
             _dataService = dataService;
         }
-
         public async Task<IActionResult> Index(string pageName)
         {
             if (string.IsNullOrEmpty(pageName))
