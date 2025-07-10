@@ -24,8 +24,9 @@
             {
                 <a href="#@item.Http">@item.Title</a>
             }
-            <a href="/cart" aria-label="Shopping Cart">
+            <a href="" aria-label="Shopping Cart">
                 <i class="fas fa-shopping-cart"></i>
+                <span id="cart-item-count" class="cart-count">0</span>
             </a>
             <a href="@Model.MemberDetailObject.FacebookProfile" target="_blank" aria-label="Facebook">
                 <i class="fab fa-facebook-f"></i>
@@ -66,6 +67,39 @@
             @RenderBody()
         </main>
     </div>
+
+    <!-- Main Content Area - Shopping Cart -->
+    <main class="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+        <h1 class="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-8 custom-h1">Start Shopping Now!</h1>
+
+        <!-- Cart Content Container -->
+        <div id="cart-content-container" class="max-w-5xl mx-auto">
+            <!-- Cart items table will be injected here by JavaScript -->
+        </div>
+
+        <!-- Summary and Checkout Section -->
+        <div class="cart-summary-section">
+            <!-- Centered summary -->
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span id="subtotal-amount">$0.00</span>
+            </div>
+            <div class="summary-row delivery-option">
+                <label for="delivery-checkbox">
+                    Delivery
+                    <input type="checkbox" id="delivery-checkbox">
+                </label>
+                <span id="delivery-amount" style="display: none;">$0.00</span>
+            </div>
+            <div class="summary-row total">
+                <span>Total</span>
+                <span id="total-amount">$0.00</span>
+            </div>
+            <div class="summary-action-buttons">
+                <button type="button" class="btn btn-checkout custom-a" onclick="">Pay</button>
+            </div>
+        </div>
+    </main>
 
     <section id="Cookies" class="products">
         @foreach (var item in Model.ProductList)
@@ -167,278 +201,341 @@
             <button class="popup-button" onclick="orderNowAndNavigate()">Order now</button>
         </div>
     </div>
-
+    <div id="toast" class="toast"></div>
+    <a href="#" id="scrollToTopBtn" title="Go to top">&#9650;</a>
     <script>
-        // This function runs when the initial HTML document has been completely loaded and parsed.
-        // It's ideal for setting up event listeners for elements that are present on the page load.
-        document.addEventListener('DOMContentLoaded', function() {
-            const hamburgerMenu = document.querySelector('.hamburger-menu'); // Renamed to hamburgerMenu for clarity
-            const nav = document.getElementById('mainNav'); // Use the ID we added, renamed to nav for consistency
-            const closeMenuBtn = document.querySelector('.close-menu-btn'); // Select the new close button
-            const body = document.body; // Reference to the body element
-
-            // Function to toggle menu state
-            function toggleMenu() {
-                if (nav) {
-                    nav.classList.toggle('active'); // Toggles the 'active' class on the nav
-                }
-                if (hamburgerMenu) {
-                    hamburgerMenu.classList.toggle('active'); // Optional: Add active state to hamburger for animation
-                }
-                body.classList.toggle('menu-open'); // Toggles a class on the body to control overflow/overlay
-            }
-
-            // Event listener for the hamburger menu to OPEN the menu
-            if (hamburgerMenu && nav) { // Ensure both elements exist
-                hamburgerMenu.addEventListener('click', toggleMenu);
-            }
-
-            // Event listener for the new close button to CLOSE the menu
-            if (closeMenuBtn && nav) { // Ensure both elements exist
-                closeMenuBtn.addEventListener('click', toggleMenu);
-            }
-
-            // Optional: Close menu when a link inside it is clicked (for single-page navigation)
-            if (nav) {
-                // Exclude the close button itself from this listener
-                nav.querySelectorAll('a:not(.close-menu-btn)').forEach(link => {
-                    link.addEventListener('click', () => {
-                        // Only close if the menu is currently open
-                        if (nav.classList.contains('active')) {
-                            toggleMenu();
-                        }
-                    });
-                });
-            }
-
-            // Optional: Close menu if user clicks outside the menu when it's open
-            document.addEventListener('click', function(event) {
-                // Check if the nav is active (open) AND the click target is NOT inside the nav
-                // AND the click target is NOT the hamburger menu button itself.
-                if (nav && nav.classList.contains('active') &&
-                    !nav.contains(event.target) &&
-                    !hamburgerMenu.contains(event.target)) {
-                    toggleMenu();
-                }
-            });
+         // This function runs when the initial HTML document has been completely loaded and parsed.
+         // It's ideal for setting up event listeners for elements that are present on the page load.
+             document.addEventListener('DOMContentLoaded', function() {
+             const hamburgerMenu = document.querySelector('.hamburger-menu'); // Renamed to hamburgerMenu for clarity
+             const nav = document.getElementById('mainNav'); // Use the ID we added, renamed to nav for consistency
+             const closeMenuBtn = document.querySelector('.close-menu-btn'); // Select the new close button
+             const body = document.body; // Reference to the body element
 
 
-            // --- Slider functionality (no changes needed here for the close button) ---
-            const slidesContainer = document.querySelector('.slides-container');
-            const slides = document.querySelectorAll('.slide');
-            const prevButton = document.querySelector('.prev-button');
-            const nextButton = document.querySelector('.next-button');
-            const dotsContainer = document.querySelector('.dots-container');
-            const dots = document.querySelectorAll('.dot'); // Make sure your HTML has elements with class 'dot'
+             // Function to toggle menu state
+             function toggleMenu() {
+                 if (nav) {
+                     nav.classList.toggle('active'); // Toggles the 'active' class on the nav
+                 }
+                 if (hamburgerMenu) {
+                     hamburgerMenu.classList.toggle('active'); // Optional: Add active state to hamburger for animation
+                 }
+                 body.classList.toggle('menu-open'); // Toggles a class on the body to control overflow/overlay
+             }
 
-            let currentIndex = 0;
-            const totalSlides = slides.length;
+             // Event listener for the hamburger menu to OPEN the menu
+             if (hamburgerMenu && nav) { // Ensure both elements exist
+                 hamburgerMenu.addEventListener('click', toggleMenu);
+             }
 
-            function updateSlider() {
-                slidesContainer.style.transform = `translateX(-${currentIndex * 100}%)`;
-                updateDots();
-            }
+             // Event listener for the new close button to CLOSE the menu
+             if (closeMenuBtn && nav) { // Ensure both elements exist
+                 closeMenuBtn.addEventListener('click', toggleMenu);
+             }
 
-            function updateDots() {
-                dots.forEach((dot, index) => {
-                    if (index === currentIndex) {
-                        dot.classList.add('active');
-                    } else {
-                        dot.classList.remove('active');
-                    }
-                });
-            }
+             // Optional: Close menu when a link inside it is clicked (for single-page navigation)
+             if (nav) {
+                 // Exclude the close button itself from this listener
+                 nav.querySelectorAll('a:not(.close-menu-btn)').forEach(link => {
+                     link.addEventListener('click', () => {
+                         // Only close if the menu is currently open
+                         if (nav.classList.contains('active')) {
+                             toggleMenu();
+                         }
+                     });
+                 });
+             }
 
-            if (nextButton) {
-                nextButton.addEventListener('click', () => {
-                    currentIndex = (currentIndex + 1) % totalSlides;
-                    updateSlider();
-                });
-            }
-
-            if (prevButton) {
-                prevButton.addEventListener('click', () => {
-                    currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
-                    updateSlider();
-                });
-            }
-
-            if (dotsContainer) { // Check if dotsContainer exists before adding listeners to dots
-                dots.forEach(dot => {
-                    dot.addEventListener('click', (event) => {
-                        const slideIndex = parseInt(event.target.dataset.slideIndex);
-                        currentIndex = slideIndex;
-                        updateSlider();
-                    });
-                });
-            }
-
-            // Optional: Auto-slide
-            // Ensure you pause this if user interacts with buttons for better UX
-            if (totalSlides > 1) { // Only auto-slide if there's more than one slide
-                setInterval(() => {
-                    currentIndex = (currentIndex + 1) % totalSlides;
-                    updateSlider();
-                }, 5000); // Change slide every 5 seconds
-            }
-
-            // Initialize the slider state
-            if (slidesContainer) {
-                updateSlider();
-            }
-        });
-        // --- End of DOMContentLoaded block ---
+             // Optional: Close menu if user clicks outside the menu when it's open
+             document.addEventListener('click', function(event) {
+                 // Check if the nav is active (open) AND the click target is NOT inside the nav
+                 // AND the click target is NOT the hamburger menu button itself.
+                 if (nav && nav.classList.contains('active') &&
+                     !nav.contains(event.target) &&
+                     !hamburgerMenu.contains(event.target)) {
+                     toggleMenu();
+                 }
+             });
 
 
-            // Global reference for the popup element, initialized once DOM is ready
-        let popupOverlayElement;
+             // --- Slider functionality (no changes needed here for the close button) ---
+             const slidesContainer = document.querySelector('.slides-container');
+             const slides = document.querySelectorAll('.slide');
+             const prevButton = document.querySelector('.prev-button');
+             const nextButton = document.querySelector('.next-button');
+             const dotsContainer = document.querySelector('.dots-container');
+             const dots = document.querySelectorAll('.dot'); // Make sure your HTML has elements with class 'dot'
 
-        /**
-         * Attempts to show the popup if it hasn't been shown in the current session.
-         * Sets a sessionStorage flag if it shows the popup.
-         */
-        function showPopupIfNeverShown() {
-            // Lazy-initialize popupOverlayElement if not already set
-            if (!popupOverlayElement) {
-                popupOverlayElement = document.getElementById("popup");
-                if (!popupOverlayElement) { // If element doesn't exist, do nothing
-                    console.warn("Popup element with ID 'popup' not found.");
-                    return;
-                }
-            }
+             let currentIndex = 0;
+             const totalSlides = slides.length;
 
-            const hasPopupBeenShown = sessionStorage.getItem('hasPopupBeenShown');
+             function updateSlider() {
+                 slidesContainer.style.transform = `translateX(-${currentIndex * 100}%)`;
+                 updateDots();
+             }
 
-            if (!hasPopupBeenShown) {
-                popupOverlayElement.style.display = "flex"; // Show the popup
-                sessionStorage.setItem('hasPopupBeenShown', 'true'); // Mark as shown for this session
-                console.log("Popup shown for the first time this session.");
-            } else {
-                console.log("Popup already shown this session, skipping.");
-            }
-        }
+             function updateDots() {
+                 dots.forEach((dot, index) => {
+                     if (index === currentIndex) {
+                         dot.classList.add('active');
+                     } else {
+                         dot.classList.remove('active');
+                     }
+                 });
+             }
 
-        /**
-         * Closes the popup. This also ensures the sessionStorage flag is set
-         * so it doesn't reappear via exit-intent if closed manually.
-         */
-        function closePopup() {
-            // Lazy-initialize popupOverlayElement if not already set
-            if (!popupOverlayElement) {
-                popupOverlayElement = document.getElementById("popup");
-                if (!popupOverlayElement) return;
-            }
+             if (nextButton) {
+                 nextButton.addEventListener('click', () => {
+                     currentIndex = (currentIndex + 1) % totalSlides;
+                     updateSlider();
+                 });
+             }
 
-            popupOverlayElement.style.display = "none";
-            // Ensure flag is set, even if manually closed, to prevent exit-intent re-trigger
-            sessionStorage.setItem('hasPopupBeenShown', 'true');
-            console.log("Popup closed by user.");
-        }
+             if (prevButton) {
+                 prevButton.addEventListener('click', () => {
+                     currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                     updateSlider();
+                 });
+             }
 
-        // --- MAIN POPUP LOGIC INITIALIZATION ---
+             if (dotsContainer) { // Check if dotsContainer exists before adding listeners to dots
+                 dots.forEach(dot => {
+                     dot.addEventListener('click', (event) => {
+                         const slideIndex = parseInt(event.target.dataset.slideIndex);
+                         currentIndex = slideIndex;
+                         updateSlider();
+                     });
+                 });
+             }
 
-        // 1. Show popup on initial page load (once per session)
-        window.onload = function() {
-            console.log("Window loaded. Checking popup status...");
-            showPopupIfNeverShown();
-        };
+             // Optional: Auto-slide
+             // Ensure you pause this if user interacts with buttons for better UX
+             if (totalSlides > 1) { // Only auto-slide if there's more than one slide
+                 setInterval(() => {
+                     currentIndex = (currentIndex + 1) % totalSlides;
+                     updateSlider();
+                 }, 5000); // Change slide every 5 seconds
+             }
 
-        // Close popup and navigate to #products (assuming 'cookies' was a typo and you meant products)
-        function orderNowAndNavigate() {
-            closePopup();
-            // Corrected target ID to 'products' which is a more common section name.
-            // If your actual section ID is 'cookies', change this back to '#cookies'.
-            window.location.href = '#products';
-        }
+             // Initialize the slider state
+             if (slidesContainer) {
+                 updateSlider();
+             }
+         });
+         // --- End of DOMContentLoaded block ---
 
-        // NEW FUNCTION: Handle form submission with AJAX after browser validation
-        async function handleSubscription(event) {
-            event.preventDefault(); // Prevent the default form submission
 
-            const nameInput = document.getElementById('nameInput'); // Get the name input
-            const emailInput = document.getElementById('emailInput');
+             // Global reference for the popup element, initialized once DOM is ready
+         let popupOverlayElement;
 
-            const nameValue = nameInput ? nameInput.value.trim() : ''; // Get name, handle if input doesn't exist
-            const emailValue = emailInput.value.trim();
+         /**
+          * Attempts to show the popup if it hasn't been shown in the current session.
+          * Sets a sessionStorage flag if it shows the popup.
+          */
+         function showPopupIfNeverShown() {
+             // Lazy-initialize popupOverlayElement if not already set
+             if (!popupOverlayElement) {
+                 popupOverlayElement = document.getElementById("popup");
+                 if (!popupOverlayElement) { // If element doesn't exist, do nothing
+                     console.warn("Popup element with ID 'popup' not found.");
+                     return;
+                 }
+             }
 
-            // **Important:** At this point, the browser has already validated the email field
-            // because of type="email" and required attributes on the input.
+             const hasPopupBeenShown = sessionStorage.getItem('hasPopupBeenShown');
 
-            // Perform the AJAX request
-            try {
-                // Replace '/subscribe' with your actual server endpoint for subscription
-                const response = await fetch('/subscribe', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    // Include both name and email in the request body
-                    body: JSON.stringify({
-                        name: nameValue,
-                        email: emailValue
-                    }),
-                });
+             if (!hasPopupBeenShown) {
+                 popupOverlayElement.style.display = "flex"; // Show the popup
+                 sessionStorage.setItem('hasPopupBeenShown', 'true'); // Mark as shown for this session
+                 console.log("Popup shown for the first time this session.");
+             } else {
+                 console.log("Popup already shown this session, skipping.");
+             }
+         }
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-                }
+         /**
+          * Closes the popup. This also ensures the sessionStorage flag is set
+          * so it doesn't reappear via exit-intent if closed manually.
+          */
+         function closePopup() {
+             // Lazy-initialize popupOverlayElement if not already set
+             if (!popupOverlayElement) {
+                 popupOverlayElement = document.getElementById("popup");
+                 if (!popupOverlayElement) return;
+             }
 
-                const data = await response.json();
+             popupOverlayElement.style.display = "none";
+             // Ensure flag is set, even if manually closed, to prevent exit-intent re-trigger
+             sessionStorage.setItem('hasPopupBeenShown', 'true');
+             console.log("Popup closed by user.");
+         }
 
-                console.log('Subscription Success:', data);
-                alert('Thank you for subscribing, ' + (nameValue || '!') + ' We will send you updates!');
+         // --- MAIN POPUP LOGIC INITIALIZATION ---
 
-                // Clear both input fields after successful subscription
-                if (nameInput) nameInput.value = '';
-                emailInput.value = '';
+         // 1. Show popup on initial page load (once per session)
+         window.onload = function() {
+             console.log("Window loaded. Checking popup status...");
+             showPopupIfNeverShown();
+         };
 
-            } catch (error) {
-                console.error('Subscription Error:', error);
-                alert('There was an error subscribing: ' + error.message + '. Please try again later.');
-            }
-        }
+         // Close popup and navigate to #products (assuming 'cookies' was a typo and you meant products)
+         function orderNowAndNavigate() {
+             closePopup();
+             // Corrected target ID to 'products' which is a more common section name.
+             // If your actual section ID is 'cookies', change this back to '#cookies'.
+             window.location.href = '#Cookies';
+         }
 
-        // Add to cart
-         function addToCart(itemName, itemPrice, itemPath, itemImageUrl) {
-            let cart = getCartItems();
-            const existingItem = cart.find(item => item.itemPath === itemPath); // Check if item already in cart
+                 // Get the button
+            const scrollToTopBtn = document.getElementById("scrollToTopBtn");
 
-            if (existingItem) {
-                // If item exists and quantity is less than 6, increment quantity
-                if (existingItem.quantity < 6) {
-                    existingItem.quantity++;
+            // When the user scrolls down 20px from the top of the document, show the button
+            window.onscroll = function() {
+                if (document.body.scrollTop > 30 || document.documentElement.scrollTop > 30) {
+                    scrollToTopBtn.style.display = "block";
                 } else {
-                    // Maximum quantity reached, you might want to show a user-friendly message here
-                    console.log(`Maximum quantity (6) reached for ${itemName}.`);
-                    // In a full application, you might call a custom message box here.
+                    scrollToTopBtn.style.display = "none";
                 }
-            } else {
-                // If item does not exist, add it with quantity 1
-                // Directly use the passed itemName, itemPrice, and itemPath
-                cart.push({
-                    name: itemName,
-                    price: itemPrice,
-                    itemPath: itemPath, // Ensure this property name matches your find logic
-                    quantity: 1,
-                    imagePath: itemImageUrl
-                });
-            }
+            };
 
-            saveCartItems(cart); // Save the updated cart to sessionStorage
-            // In a full application, you would also call a function here to update the cart item count displayed in the navigation.
-            // e.g., updateCartCount();
-            console.log('Current Cart:', getCartItems()); // For demonstration, log the cart
-        }
+            // When the user clicks on the button, scroll to the top of the document
+            scrollToTopBtn.onclick = function() {
+                document.body.scrollTop = 0; // For Safari
+                document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+            };
 
-        // You'll also need these helper functions and the storage key defined:
-        const CART_STORAGE_KEY = 'shoppingCartSession'; // Or 'shoppingCart' if you prefer localStorage
+         // NEW FUNCTION: Handle form submission with AJAX after browser validation
+         async function handleSubscription(event) {
+             event.preventDefault(); // Prevent the default form submission
 
-       // Get Cart Items
+             const nameInput = document.getElementById('nameInput'); // Get the name input
+             const emailInput = document.getElementById('emailInput');
+
+             const nameValue = nameInput ? nameInput.value.trim() : ''; // Get name, handle if input doesn't exist
+             const emailValue = emailInput.value.trim();
+
+             // **Important:** At this point, the browser has already validated the email field
+             // because of type="email" and required attributes on the input.
+
+             // Perform the AJAX request
+             try {
+                 // Replace '/subscribe' with your actual server endpoint for subscription
+                 const response = await fetch('/subscribe', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json',
+                         'Accept': 'application/json'
+                     },
+                     // Include both name and email in the request body
+                     body: JSON.stringify({
+                         name: nameValue,
+                         email: emailValue
+                     }),
+                 });
+
+                 if (!response.ok) {
+                     const errorData = await response.json();
+                     throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                 }
+
+                 const data = await response.json();
+
+                 console.log('Subscription Success:', data);
+                 alert('Thank you for subscribing, ' + (nameValue || '!') + ' We will send you updates!');
+
+                 // Clear both input fields after successful subscription
+                 if (nameInput) nameInput.value = '';
+                 emailInput.value = '';
+
+             } catch (error) {
+                 console.error('Subscription Error:', error);
+                 alert('There was an error subscribing: ' + error.message + '. Please try again later.');
+             }
+         }
+
+         // Helper function to show the toast message
+         function showToast(message) {
+             const toast = document.getElementById("toast");
+             toast.textContent = message;
+             toast.classList.add("show");
+
+             // Hide the toast after 3 seconds
+             setTimeout(function(){
+                 toast.classList.remove("show");
+             }, 3000); // 3000 milliseconds = 3 seconds
+         }
+
+
+
+
+
+         // You'll also need these helper functions and the storage key defined:
+         const CART_STORAGE_KEY = 'shoppingCartSession'; // Or 'shoppingCart' if you prefer localStorage
+         console.log("Cart page script loaded."); // Added for debugging
+
+        // Get references to DOM elements
+        const cartContentDiv = document.getElementById('cart-content-container'); // Updated to target the new container
+        const subtotalAmountSpan = document.getElementById('subtotal-amount');
+        const totalAmountSpan = document.getElementById('total-amount');
+        const countdownTimerSpan = document.getElementById('countdown-timer');
+        const cartItemCountSpan = document.getElementById('cart-item-count'); // From navigation
+        const deliveryCheckbox = document.getElementById('delivery-checkbox');
+        const deliveryAmountSpan = document.getElementById('delivery-amount');
+
+        // Add this new function to update the cart count display
+         function updateCartCount() {
+             const cart = getCartItems();
+             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+             const cartCountElement = document.getElementById('cart-item-count');
+
+             if (cartCountElement) {
+                 cartCountElement.textContent = totalItems;
+                 // Optionally hide the count if it's zero
+                 if (totalItems === 0) {
+                     cartCountElement.style.display = 'none';
+                 } else {
+                     cartCountElement.style.display = 'inline-block'; // Or whatever your CSS sets it to
+                 }
+             }
+         }
+
+         // add to cart
+         function addToCart(itemName, itemPrice, itemPath, itemImageUrl) {
+             let cart = getCartItems();
+             const existingItem = cart.find(item => item.itemPath === itemPath);
+
+             if (existingItem) {
+                 if (existingItem.quantity < 6) {
+                     existingItem.quantity++;
+                     showToast(`${itemName} added to cart!`); // Call the showToast function
+                 } else {
+                     console.log(`Maximum quantity (6) reached for ${itemName}.`);
+                     showToast(`Maximum quantity (6) reached for ${itemName}.`); // Show toast for max quantity
+                 }
+             } else {
+                 cart.push({
+                     name: itemName,
+                     price: itemPrice,
+                     itemPath: itemPath,
+                     quantity: 1,
+                     imagePath: itemImageUrl
+                 });
+                 showToast(`${itemName} added to cart!`); // Call the showToast function
+             }
+
+             saveCartItems(cart);
+             console.log('Current Cart:', getCartItems());
+             updateCartCount();
+             renderCart();
+         }
+
+        /**
+         * Retrieves the current cart items from sessionStorage.
+         */
         function getCartItems() {
             try {
-                const cartJson = sessionStorage.getItem(CART_STORAGE_KEY);
+                const cartJson = localStorage.getItem(CART_STORAGE_KEY);
                 return cartJson ? JSON.parse(cartJson) : [];
             } catch (e) {
                 console.error("Error parsing cart from sessionStorage:", e);
@@ -446,14 +543,217 @@
             }
         }
 
-        // Save Cart Items
+        /**
+         * Saves the given cart items to sessionStorage.
+         */
         function saveCartItems(cart) {
             try {
-                sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+                localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
             } catch (e) {
                 console.error("Error saving cart to sessionStorage:", e);
             }
         }
+
+        /**
+         * Updates the total item count displayed on the cart icon.
+         */
+        function updateCartCount() {
+            const cart = getCartItems();
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            console.log("totalItems", totalItems, cartItemCountSpan);
+            if (cartItemCountSpan) {
+                cartItemCountSpan.textContent = totalItems;
+                if (totalItems > 0) {
+                    cartItemCountSpan.classList.remove('hidden');
+                } else {
+                    cartItemCountSpan.classList.add('hidden');
+                }
+            }
+        }
+
+        /**
+         * Updates the quantity of a specific item in the cart.
+         */
+        function updateQuantity(itemPath, newQuantity) {
+            let cart = getCartItems();
+            cart = cart.map(item => {
+                if (item.itemPath === itemPath) {
+                    const quantity = Math.max(1, Math.min(6, newQuantity));
+                    return { ...item, quantity };
+                }
+                return item;
+            }).filter(item => item.quantity > 0);
+
+            saveCartItems(cart);
+            updateCartCount();
+            renderCart();
+        }
+
+        /**
+         * Removes an item from the cart.
+         */
+        function removeItem(itemPath) {
+            let cart = getCartItems();
+            cart = cart.filter(item => item.itemPath !== itemPath);
+            saveCartItems(cart);
+            updateCartCount();
+            renderCart();
+        }
+
+        /**
+         * Displays a custom message box instead of alert().
+         */
+        function showMessageBox(message) {
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            overlay.id = 'message-box-overlay';
+
+            const messageBox = document.createElement('div');
+            messageBox.className = 'bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center';
+            messageBox.innerHTML = `
+                <p class="text-lg font-semibold text-gray-800 mb-4">${message}</p>
+                <button id="messageBoxCloseBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-md transition duration-300">
+                    OK
+                </button>
+            `;
+
+            overlay.appendChild(messageBox);
+            document.body.appendChild(overlay);
+
+            document.getElementById('messageBoxCloseBtn').addEventListener('click', () => {
+                document.body.removeChild(overlay);
+            });
+        }
+
+
+            // Define your delivery cost here
+            let DELIVERY_COST = 0.00; // Example delivery cost
+            function renderCart() {
+            const cart = getCartItems();  // Retrieve cart items from sessionStorage
+            let subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            //add delivery
+            if (deliveryCheckbox.checked) {
+                let totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+                if(totalQuantity < 6)
+                {
+                    DELIVERY_COST = 9.99;
+                }
+                if(totalQuantity > 6 && totalQuantity < 12)
+                {
+                    DELIVERY_COST = 12.99;
+                }
+                deliveryAmountSpan.textContent = `$${DELIVERY_COST.toFixed(2)}`;
+                deliveryAmountSpan.style.display = 'inline'; // Show the delivery amount
+            } else {
+                deliveryAmountSpan.style.display = 'none'; // Hide the delivery amount
+            }
+            let total = DELIVERY_COST + subtotal;
+
+            let cartContentHtml = '';
+            if (cart.length === 0) {
+                cartContentHtml = '<p class="text-center text-gray-600 text-lg">Your cart is empty.</p>';
+            } else {
+                cartContentHtml = `
+                    <table class="cart-table">
+                        <thead>
+                            <tr>
+                                <th class="w-2/5">Product</th>
+                                <th class="w-1/5">Price</th>
+                                <th class="w-1/5">Quantity</th>
+                                <th class="w-1/5 text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${cart.map(item => `
+                                <tr>
+                                    <td class="product-col">
+                                        <img
+                                            src="${item.imagePath}"
+                                            alt="${item.name}"
+                                            class="w-20 h-20 object-cover rounded-md flex-shrink-0"
+                                            onerror="this.onerror=null; this.src='https://placehold.co/80x80/CCCCCC/000000?text=No+Image';"
+                                        />
+                                        <div>
+                                            <h3 class="text-lg font-semibold text-gray-900">${item.name}</h3>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <p class="text-gray-800 font-medium">$${item.price.toFixed(2)}</p>
+                                    </td>
+                                    <td>
+                                        <div class="flex items-center space-x-2">
+                                            <div class="quantity-controls">
+                                                <button
+                                                    data-item-path="${item.itemPath}"
+                                                    data-action="decrease"
+                                                    ${item.quantity <= 1 ? 'disabled' : ''}
+                                                    class="quantity-btn"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus"><path d="M5 12h14"/></svg>
+                                                </button>
+                                                <span class="text-lg font-medium text-gray-800 text-center">
+                                                    ${item.quantity}
+                                                </span>
+                                                <button
+                                                    data-item-path="${item.itemPath}"
+                                                    data-action="increase"
+                                                    ${item.quantity >= 6 ? 'disabled' : ''}
+                                                    class="quantity-btn"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                                                </button>
+                                                <button
+                                                    data-item-path="${item.itemPath}"
+                                                    class="remove-item-btn"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                                                </button>
+                                             </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-right">
+                                        <p class="text-lg font-semibold text-indigo-600">$${(item.price * item.quantity).toFixed(2)}</p>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            cartContentDiv.innerHTML = cartContentHtml;
+
+            // Update subtotal and total amounts
+            if (subtotalAmountSpan) subtotalAmountSpan.textContent = `$${subtotal.toFixed(2)}`;
+            if (totalAmountSpan) totalAmountSpan.textContent = `$${total.toFixed(2)}`;
+
+            // Re-attach event listeners for dynamically added elements
+            document.querySelectorAll('.quantity-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const itemPath = event.currentTarget.dataset.itemPath;
+                    const action = event.currentTarget.dataset.action;
+                    let currentQuantity = parseInt(event.currentTarget.closest('.quantity-controls').querySelector('span').textContent);
+                    updateQuantity(itemPath, currentQuantity + (action === 'increase' ? 1 : -1));
+                });
+            });
+
+            document.querySelectorAll('.remove-item-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const itemPath = event.currentTarget.dataset.itemPath;
+                    removeItem(itemPath);
+                });
+            });
+        }
+
+        // Ensure cart is rendered when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCart();
+            updateCartCount();
+            // Event listener for the delivery checkbox
+            if (deliveryCheckbox) {
+                deliveryCheckbox.addEventListener('change', renderCart);
+            }
+        });
     </script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

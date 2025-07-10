@@ -82,14 +82,8 @@ app.UseCors(); // Place after UseRouting, before Map* or UseEndpoints if using d
 // Map endpoints
 app.MapControllers(); // Maps attribute-routed controllers
 app.MapControllerRoute(
-    name: "cartRoute",
-    pattern: "Cart", // This pattern will match requests to /Cart
-    defaults: new { controller = "Cart", action = "Index" } // Directs to CartController's Index action
-);
-app.MapControllerRoute(
     name: "pageRoute",
     pattern: "{pageName?}", // {pageName?} makes the pageName segment optional
     defaults: new { controller = "Home", action = "Index" }
 );
-
 app.Run();
