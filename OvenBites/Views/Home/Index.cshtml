@@ -10,13 +10,16 @@
 }
 @if (Model.CurrentPost != null)
 {
+    var price = Model.CurrentPost.Attributes.FirstOrDefault(x => x.Title.ToLower() == "price").Value.ToString();
+    var itemImage = Model.CurrentPost.Pics.FirstOrDefault();
+    var itemImageUrl = new Uri(itemImage.PicPath);
     <section class="section-container">
         <div class="product-detail-wrapper">
             <div class="product-info-column">
                 <h2>@Model.CurrentPost.BizName</h2>
                 <p class="product-description">@Html.Raw(Model.CurrentPost.BizDesc)</p>
-                <p class="product-price">$@Model.CurrentPost.Attributes.FirstOrDefault(x => x.Title.ToLower() == "price").Value.ToString()</p>
-                <button class="add-to-cart-btn" data-product-id="@Model.CurrentPost.BizDisplayTitle">Add to Cart</button>
+                <p class="product-price">@price</p>
+                <button class="add-to-cart-btn w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition duration-300" onclick="addToCart('@Model.CurrentPost.BizName', @price, '@Model.CurrentPost.BizDisplayTitle', '@itemImageUrl')">Add to Cart</button>
             </div>
 
             <div class="product-slider-column">

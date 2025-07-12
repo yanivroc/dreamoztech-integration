@@ -1,4 +1,6 @@
-﻿@model DisplayViewModel
+﻿@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@model DisplayViewModel
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -145,7 +147,12 @@
                     <label for="message">Message:</label>
                     <textarea id="message" name="message" placeholder="Your message..." rows="5" required></textarea>
                 </div>
-                <button type="submit">Send Message</button>
+                <div class="mb-4">
+                    <div class="g-recaptcha" data-sitekey="@Configuration["Recaptcha:SecretKey"]"></div>
+                </div>
+                <div class="mb-4">
+                    <button type="submit">Send Message</button>
+                </div>
             </form>
         </div>
         <div class="section-content">
@@ -174,8 +181,10 @@
     <footer>
         <div class="newsletter">
             <p>Subscribe to our emails</p>
-            <form id="newsletterForm" action="/subscribe" method="POST" onsubmit="handleSubscription(event)">
-                <input type="text" id="nameInput" placeholder="Your Name" name="name" required /> <input type="email" id="emailInput" placeholder="Email address" name="email" required />
+            <form id="newsletterForm" action="/subscribe" method="POST" onsubmit="handleSubscription(event)" class="space-y-4">
+                <input type="text" id="nameInput" placeholder="Your Name" name="name" required />
+                <input type="email" id="emailInput" placeholder="Email address" name="email" required />
+                <div class="g-recaptcha" data-sitekey="@Configuration["Recaptcha:SecretKey"]"></div>
                 <button type="submit" class="subscribe-button">Subscribe</button>
             </form>
         </div>
@@ -388,7 +397,7 @@
              window.location.href = '#Cookies';
          }
 
-                 // Get the button
+            // Get the button
             const scrollToTopBtn = document.getElementById("scrollToTopBtn");
 
             // When the user scrolls down 20px from the top of the document, show the button
@@ -406,54 +415,61 @@
                 document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
             };
 
-         // NEW FUNCTION: Handle form submission with AJAX after browser validation
-         async function handleSubscription(event) {
-             event.preventDefault(); // Prevent the default form submission
+         // Asynchronous function to handle form submission
+        async function handleSubscription(event) {
+            event.preventDefault(); // Prevent the default form submission (page reload)
 
-             const nameInput = document.getElementById('nameInput'); // Get the name input
-             const emailInput = document.getElementById('emailInput');
+            const form = event.target;
+            const formData = new FormData(form); // Get form data
+            const name = formData.get('name');
+            const email = formData.get('email');
 
-             const nameValue = nameInput ? nameInput.value.trim() : ''; // Get name, handle if input doesn't exist
-             const emailValue = emailInput.value.trim();
+            // Get the reCAPTCHA response token
+            const recaptchaResponse = grecaptcha.getResponse();
 
-             // **Important:** At this point, the browser has already validated the email field
-             // because of type="email" and required attributes on the input.
+            // Validate reCAPTCHA
+            if (!recaptchaResponse) {
+                showToast('Please complete the reCAPTCHA verification.');
+                return; // Stop the function if reCAPTCHA is not completed
+            }
 
-             // Perform the AJAX request
-             try {
-                 // Replace '/subscribe' with your actual server endpoint for subscription
-                 const response = await fetch('/subscribe', {
-                     method: 'POST',
-                     headers: {
-                         'Content-Type': 'application/json',
-                         'Accept': 'application/json'
-                     },
-                     // Include both name and email in the request body
-                     body: JSON.stringify({
-                         name: nameValue,
-                         email: emailValue
-                     }),
-                 });
+            // Create a data object to send as JSON, including the reCAPTCHA token
+            const data = {
+                name: name,
+                email: email,
+                recaptchaToken: recaptchaResponse // Include reCAPTCHA token
+            };
 
-                 if (!response.ok) {
-                     const errorData = await response.json();
-                     throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-                 }
+            try {
+                // Send the POST request using fetch API
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json', // Specify content type as JSON
+                        'Accept': 'application/json' // Expect JSON response
+                    },
+                    body: JSON.stringify(data) // Convert data object to JSON string
+                });
 
-                 const data = await response.json();
-
-                 console.log('Subscription Success:', data);
-                 alert('Thank you for subscribing, ' + (nameValue || '!') + ' We will send you updates!');
-
-                 // Clear both input fields after successful subscription
-                 if (nameInput) nameInput.value = '';
-                 emailInput.value = '';
-
-             } catch (error) {
-                 console.error('Subscription Error:', error);
-                 alert('There was an error subscribing: ' + error.message + '. Please try again later.');
-             }
-         }
+                // Check if the request was successful
+                if (response.ok) {
+                    const result = await response.json(); // Parse the JSON response
+                    showToast(result.message || 'Subscription successful!'); // Display success message from server or default
+                    form.reset(); // Optionally clear the form fields on success
+                } else {
+                    // Handle HTTP errors (e.g., 400, 500)
+                    const errorData = await response.json(); // Try to parse error message from server
+                    showToast(errorData.message || 'Subscription failed. Please try again.'); // Display error message
+                }
+            } catch (error) {
+                // Handle network errors or issues with fetch itself
+                console.error('Error during subscription:', error);
+                showToast('An unexpected error occurred. Please check your network connection.');
+            } finally {
+                // Always reset reCAPTCHA after submission attempt (success or failure)
+                grecaptcha.reset();
+            }
+        }
 
          // Helper function to show the toast message
          function showToast(message) {
@@ -646,6 +662,7 @@
                 deliveryAmountSpan.textContent = `$${DELIVERY_COST.toFixed(2)}`;
                 deliveryAmountSpan.style.display = 'inline'; // Show the delivery amount
             } else {
+                DELIVERY_COST = 0;
                 deliveryAmountSpan.style.display = 'none'; // Hide the delivery amount
             }
             let total = DELIVERY_COST + subtotal;
@@ -760,6 +777,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
