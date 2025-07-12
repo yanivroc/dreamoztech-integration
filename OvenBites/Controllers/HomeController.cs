@@ -1,19 +1,24 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using OvenBites.Api;
 using OvenBites.Models;
 using OvenBites.Services;
+using System.Diagnostics;
 
 namespace OvenBites.Controllers
 {
     public class HomeController : Controller
     {
         private readonly IDataService _dataService;
-
-        public HomeController(IDataService dataService)
+        private readonly string _recaptchaSiteKey;
+        private readonly string _recaptchaSecretKey;
+        private readonly IConfiguration _configuration;
+        public HomeController(IDataService dataService, IConfiguration configuration)
         {
             _dataService = dataService;
+            _configuration = configuration;
+            _recaptchaSiteKey = _configuration["Recaptcha:SiteKey"];
+            _recaptchaSecretKey = _configuration["Recaptcha:SecretKey"];
         }
 
         public async Task<IActionResult> Index(string pageName)
@@ -55,6 +60,8 @@ namespace OvenBites.Controllers
             DisplayViewModel vm = new DisplayViewModel(
                 memberDetailObject,
                 memberFullName,
+                _recaptchaSiteKey,
+                _recaptchaSecretKey,
                 memberLogoImagePath,
                 productPostsList,
                 menuItems,

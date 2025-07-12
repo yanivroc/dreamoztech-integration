@@ -14,6 +14,17 @@ body {
     /* CRUCIAL: Push content down by header height */
     padding-top: 100px; /* Default for desktop header height */
     overflow-x: hidden; /* Prevent horizontal scrollbar from mobile menu sliding */
+    /* Add a generic font family fallback (serif, sans-serif, monospace) */
+    line-height: 1.6; /* Good for readability */
+    font-family: "Roboto", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Lora', serif; /* Apply Lora to all headings */
+    font-weight: 700; /* If you want your headings bold, make sure you imported that weight */
+    color: #222;
 }
 
 /* Header Styles */
@@ -525,6 +536,7 @@ footer {
     cursor: pointer;
     font-size: 18px;
     transition: background-color 0.3s ease;
+    margin-top: 10px;
 }
 
     .contact-form button:hover {

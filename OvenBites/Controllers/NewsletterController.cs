@@ -5,34 +5,30 @@ using System.Text.Json;
 namespace OvenBites.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("[controller]")] // This means the base route for this controller is /Newsletter
     public class NewsletterController : ControllerBase
     {
-        // IMPORTANT: Replace with your actual reCAPTCHA secret key
-        // You should store this securely, e.g., in appsettings.json or environment variables
         private readonly string _recaptchaSecretKey;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
 
-        // Constructor for dependency injection of HttpClientFactory
         public NewsletterController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
-            _recaptchaSecretKey = _configuration["Recaptcha:SecretKey"];
+            _recaptchaSecretKey = _configuration["Recaptcha:SecretKey"]; // Get secret key from configuration
         }
 
-        // This action will handle the POST request from your JavaScript form
-        [HttpPost("subscribe")] // This defines the specific route for this action, e.g., /Newsletter/subscribe
+        // Action for Newsletter Subscription
+        [HttpPost("subscribe")] // Full route: /Newsletter/subscribe
         public async Task<IActionResult> Subscribe([FromBody] NewsletterSubscriptionModel model)
         {
-            // 1. Basic Server-Side Validation (beyond client-side)
+            // 1. Basic Server-Side Validation
             if (string.IsNullOrWhiteSpace(model.Name) || string.IsNullOrWhiteSpace(model.Email))
             {
                 return BadRequest(new { message = "Name and Email are required." });
             }
 
-            // You might add more robust email validation here
             if (!IsValidEmail(model.Email))
             {
                 return BadRequest(new { message = "Invalid email format." });
@@ -53,7 +49,6 @@ namespace OvenBites.Controllers
                     new KeyValuePair<string, string>("response", model.RecaptchaToken)
                 });
 
-                // Send a POST request to Google's reCAPTCHA verification API
                 var recaptchaResponse = await httpClient.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
                 recaptchaResponse.EnsureSuccessStatusCode(); // Throws an exception for 4xx or 5xx responses
 
@@ -62,34 +57,116 @@ namespace OvenBites.Controllers
 
                 if (verificationResult == null || !verificationResult.Success)
                 {
-                    // Log the error codes for debugging
-                    Console.WriteLine($"reCAPTCHA verification failed. Error codes: {string.Join(", ", verificationResult?.ErrorCodes ?? new List<string>())}");
+                    Console.WriteLine($"reCAPTCHA verification failed for subscribe. Error codes: {string.Join(", ", verificationResult?.ErrorCodes ?? new List<string>())}");
                     return BadRequest(new { message = "reCAPTCHA verification failed. Please try again." });
                 }
             }
             catch (HttpRequestException ex)
             {
-                // Handle network errors during reCAPTCHA verification
-                Console.Error.WriteLine($"Error verifying reCAPTCHA: {ex.Message}");
+                Console.Error.WriteLine($"Error verifying reCAPTCHA for subscribe: {ex.Message}");
                 return StatusCode(500, new { message = "Error verifying reCAPTCHA. Please try again later." });
             }
             catch (JsonException ex)
             {
-                // Handle JSON parsing errors for reCAPTCHA response
-                Console.Error.WriteLine($"Error parsing reCAPTCHA response: {ex.Message}");
+                Console.Error.WriteLine($"Error parsing reCAPTCHA response for subscribe: {ex.Message}");
                 return StatusCode(500, new { message = "Error processing reCAPTCHA response." });
             }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"An unexpected error occurred during reCAPTCHA verification for subscribe: {ex.Message}");
+                return StatusCode(500, new { message = "An unexpected error occurred during reCAPTCHA verification." });
+            }
 
-            // 3. Process the Subscription (e.g., save to database, send email)
+            // 3. Process the Subscription
             // In a real application, you would save 'model.Name' and 'model.Email' to a database
             // or integrate with an email marketing service.
             Console.WriteLine($"Newsletter Subscription: Name={model.Name}, Email={model.Email}");
 
-            // Return a success response that the client-side JavaScript expects
             return Ok(new { message = "Thank you for subscribing!" });
         }
 
-        // Simple email validation helper (you might use a more robust library)
+
+        // NEW ACTION FOR CONTACT FORM
+        [HttpPost("contact")] // Full route: /Newsletter/contact
+        public async Task<IActionResult> Contact([FromBody] ContactFormModel model)
+        {
+            // 1. Basic Server-Side Validation
+            if (string.IsNullOrWhiteSpace(model.Name) || string.IsNullOrWhiteSpace(model.Email) || string.IsNullOrWhiteSpace(model.Message))
+            {
+                return BadRequest(new { message = "Name, Email, and Message are required." });
+            }
+
+            if (!IsValidEmail(model.Email))
+            {
+                return BadRequest(new { message = "Invalid email format." });
+            }
+
+            // 2. reCAPTCHA Server-Side Verification
+            if (string.IsNullOrWhiteSpace(model.RecaptchaToken))
+            {
+                return BadRequest(new { message = "reCAPTCHA token is missing." });
+            }
+
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient();
+                var content = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("secret", _recaptchaSecretKey),
+                    new KeyValuePair<string, string>("response", model.RecaptchaToken)
+                });
+
+                var recaptchaResponse = await httpClient.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
+                recaptchaResponse.EnsureSuccessStatusCode(); // Throws an exception for 4xx or 5xx responses
+
+                var recaptchaResponseBody = await recaptchaResponse.Content.ReadAsStringAsync();
+                var verificationResult = JsonSerializer.Deserialize<RecaptchaVerificationResponse>(recaptchaResponseBody);
+
+                if (verificationResult == null || !verificationResult.Success)
+                {
+                    Console.WriteLine($"reCAPTCHA verification failed for contact form. Error codes: {string.Join(", ", verificationResult?.ErrorCodes ?? new List<string>())}");
+                    return BadRequest(new { message = "reCAPTCHA verification failed. Please try again." });
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.Error.WriteLine($"Error verifying reCAPTCHA for contact form: {ex.Message}");
+                return StatusCode(500, new { message = "Error verifying reCAPTCHA. Please try again later." });
+            }
+            catch (JsonException ex)
+            {
+                Console.Error.WriteLine($"Error parsing reCAPTCHA response for contact form: {ex.Message}");
+                return StatusCode(500, new { message = "Error processing reCAPTCHA response." });
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"An unexpected error occurred during reCAPTCHA verification for contact form: {ex.Message}");
+                return StatusCode(500, new { message = "An unexpected error occurred during reCAPTCHA verification." });
+            }
+
+            // 3. Process the Contact Form (e.g., send an email, save to database)
+            // In a real application, you would implement your email sending logic here.
+            // You might inject an IEmailSender service.
+            Console.WriteLine($"Contact Form Submission: Name={model.Name}, Email={model.Email}, Message={model.Message}");
+
+            // Example:
+            // var emailSent = await _emailSender.SendEmailAsync(
+            //     "your_receiving_email@example.com", // Your email address
+            //     $"New Contact from {model.Name} ({model.Email})",
+            //     model.Message
+            // );
+
+            // if (emailSent)
+            // {
+            return Ok(new { message = "Your message has been sent successfully!" });
+            // }
+            // else
+            // {
+            //    return StatusCode(500, new { message = "Failed to send your message. Please try again." });
+            // }
+        }
+
+        // Helper method for email validation
         private bool IsValidEmail(string email)
         {
             try

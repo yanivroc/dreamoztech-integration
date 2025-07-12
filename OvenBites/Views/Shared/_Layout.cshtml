@@ -1,6 +1,4 @@
-﻿@using Microsoft.Extensions.Configuration
-@inject IConfiguration Configuration
-@model DisplayViewModel
+﻿@model DisplayViewModel
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +7,9 @@
     <title>@Model.MemberFullName</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Open+Sans&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
@@ -26,7 +26,7 @@
             {
                 <a href="#@item.Http">@item.Title</a>
             }
-            <a href="" aria-label="Shopping Cart">
+            <a href="#Cart" aria-label="Shopping Cart">
                 <i class="fas fa-shopping-cart"></i>
                 <span id="cart-item-count" class="cart-count">0</span>
             </a>
@@ -70,39 +70,40 @@
         </main>
     </div>
 
+    <section id="Cart">
+        <!-- Main Content Area - Shopping Cart -->
+        <main class="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+            <h1 class="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-8 custom-h1">Start Shopping Now!</h1>
 
-    <!-- Main Content Area - Shopping Cart -->
-    <main class="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
-        <h1 class="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-8 custom-h1">Start Shopping Now!</h1>
+            <!-- Cart Content Container -->
+            <div id="cart-content-container" class="max-w-5xl mx-auto">
+                <!-- Cart items table will be injected here by JavaScript -->
+            </div>
 
-        <!-- Cart Content Container -->
-        <div id="cart-content-container" class="max-w-5xl mx-auto">
-            <!-- Cart items table will be injected here by JavaScript -->
-        </div>
-
-        <!-- Summary and Checkout Section -->
-        <div class="cart-summary-section">
-            <!-- Centered summary -->
-            <div class="summary-row">
-                <span>Subtotal</span>
-                <span id="subtotal-amount">$0.00</span>
+            <!-- Summary and Checkout Section -->
+            <div class="cart-summary-section">
+                <!-- Centered summary -->
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal-amount">$0.00</span>
+                </div>
+                <div class="summary-row delivery-option">
+                    <label for="delivery-checkbox">
+                        Delivery
+                        <input type="checkbox" id="delivery-checkbox">
+                    </label>
+                    <span id="delivery-amount" style="display: none;">$0.00</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span id="total-amount">$0.00</span>
+                </div>
+                <div class="summary-action-buttons">
+                    <button type="button" class="btn btn-checkout custom-a" onclick="">Pay</button>
+                </div>
             </div>
-            <div class="summary-row delivery-option">
-                <label for="delivery-checkbox">
-                    Delivery
-                    <input type="checkbox" id="delivery-checkbox">
-                </label>
-                <span id="delivery-amount" style="display: none;">$0.00</span>
-            </div>
-            <div class="summary-row total">
-                <span>Total</span>
-                <span id="total-amount">$0.00</span>
-            </div>
-            <div class="summary-action-buttons">
-                <button type="button" class="btn btn-checkout custom-a" onclick="">Pay</button>
-            </div>
-        </div>
-    </main>
+        </main>
+    </section>
 
     <section id="Cookies" class="products">
         @foreach (var item in Model.ProductList)
@@ -134,7 +135,7 @@
             <p class="text-lg leading-relaxed mb-6">
                 @Html.Raw(Model.ContactPage.Description)
             </p>
-            <form class="contact-form">
+            <form id="contactForm" action="/Newsletter/contact" method="POST" onsubmit="return handleContactFormSubmit(event)" class="contact-form">
                 <div class="mb-4">
                     <label for="name">Name:</label>
                     <input type="text" id="name" name="name" placeholder="Your Name" required>
@@ -148,7 +149,7 @@
                     <textarea id="message" name="message" placeholder="Your message..." rows="5" required></textarea>
                 </div>
                 <div class="mb-4">
-                    <div class="g-recaptcha" data-sitekey="@Configuration["Recaptcha:SecretKey"]"></div>
+                    <div class="g-recaptcha" data-sitekey="@Model.SiteKey"></div>
                 </div>
                 <div class="mb-4">
                     <button type="submit">Send Message</button>
@@ -180,11 +181,11 @@
     <!-- Footer -->
     <footer>
         <div class="newsletter">
-            <p>Subscribe to our emails</p>
-            <form id="newsletterForm" action="/subscribe" method="POST" onsubmit="handleSubscription(event)" class="space-y-4">
+            <h2 class="text-3xl font-bold text-orange-700 mb-6 text-center">Subscribe to our emails</h2>
+            <form id="newsletterForm" action="/Newsletter/subscribe" method="POST" onsubmit="handleSubscription(event)" class="space-y-4">
                 <input type="text" id="nameInput" placeholder="Your Name" name="name" required />
                 <input type="email" id="emailInput" placeholder="Email address" name="email" required />
-                <div class="g-recaptcha" data-sitekey="@Configuration["Recaptcha:SecretKey"]"></div>
+                <div class="g-recaptcha" data-sitekey="@Model.SiteKey" data-callback="recaptchaCompleted"></div>
                 <button type="submit" class="subscribe-button">Subscribe</button>
             </form>
         </div>
@@ -397,11 +398,11 @@
              window.location.href = '#Cookies';
          }
 
-            // Get the button
-            const scrollToTopBtn = document.getElementById("scrollToTopBtn");
+         // Get the button
+         const scrollToTopBtn = document.getElementById("scrollToTopBtn");
 
-            // When the user scrolls down 20px from the top of the document, show the button
-            window.onscroll = function() {
+         // When the user scrolls down 20px from the top of the document, show the button
+         window.onscroll = function() {
                 if (document.body.scrollTop > 30 || document.documentElement.scrollTop > 30) {
                     scrollToTopBtn.style.display = "block";
                 } else {
@@ -409,14 +410,26 @@
                 }
             };
 
-            // When the user clicks on the button, scroll to the top of the document
-            scrollToTopBtn.onclick = function() {
+         // When the user clicks on the button, scroll to the top of the document
+         scrollToTopBtn.onclick = function() {
                 document.body.scrollTop = 0; // For Safari
                 document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
             };
 
+        // A global variable to store the reCAPTCHA response token
+        let recaptchaToken = null;
+
+        // This function is called by reCAPTCHA when it's successfully completed
+        function recaptchaCompleted(response) {
+            recaptchaToken = response;
+            //console.log("reCAPTCHA response received:", recaptchaToken);
+            // If the user tries to submit before reCAPTCHA is complete,
+            // and reCAPTCHA now completes, you might want to submit the form programmatically here,
+            // or simply enable the submit button if it was disabled.
+        }
+
          // Asynchronous function to handle form submission
-        async function handleSubscription(event) {
+         async function handleSubscription(event) {
             event.preventDefault(); // Prevent the default form submission (page reload)
 
             const form = event.target;
@@ -424,22 +437,24 @@
             const name = formData.get('name');
             const email = formData.get('email');
 
-            // Get the reCAPTCHA response token
-            const recaptchaResponse = grecaptcha.getResponse();
-
-            // Validate reCAPTCHA
-            if (!recaptchaResponse) {
+            //Check if the reCAPTCHA token is available
+            if (!recaptchaToken) {
                 showToast('Please complete the reCAPTCHA verification.');
-                return; // Stop the function if reCAPTCHA is not completed
+                // Optionally, you might want to trigger the reCAPTCHA explicitly here if it's invisible,
+                // or just rely on the user clicking the "I'm not a robot" checkbox.
+                return false; // Prevent form submission
             }
+
+            //At this point, we have the reCAPTCHA token in `recaptchaToken`
+            console.log("Final reCAPTCHA Token for submission:", recaptchaToken);
 
             // Create a data object to send as JSON, including the reCAPTCHA token
             const data = {
                 name: name,
                 email: email,
-                recaptchaToken: recaptchaResponse // Include reCAPTCHA token
+                recaptchaToken: recaptchaToken // Include reCAPTCHA token
             };
-
+            console.log("data", data);
             try {
                 // Send the POST request using fetch API
                 const response = await fetch(form.action, {
@@ -471,28 +486,84 @@
             }
         }
 
-         // Helper function to show the toast message
-         function showToast(message) {
-             const toast = document.getElementById("toast");
-             toast.textContent = message;
-             toast.classList.add("show");
+        // Asynchronous function to handle contact form submission
+        async function handleContactFormSubmit(event) {
+            event.preventDefault(); // Prevent default form submission
 
-             // Hide the toast after 3 seconds
-             setTimeout(function(){
-                 toast.classList.remove("show");
-             }, 3000); // 3000 milliseconds = 3 seconds
-         }
+            const form = event.target;
+            const formData = new FormData(form);
+            const name = formData.get('name');
+            const email = formData.get('email');
+            const message = formData.get('message');
 
+            // Validate reCAPTCHA token for contact form
+            if (!recaptchaTokenContact) {
+                showToast('Please complete the reCAPTCHA verification for the contact form.');
+                console.log("Contact form submission stopped: reCAPTCHA token is null.");
+                return false;
+            }
 
+            console.log("Final Contact Form reCAPTCHA Token:", recaptchaTokenContact);
 
+            const data = {
+                name: name,
+                email: email,
+                message: message,
+                recaptchaToken: recaptchaTokenContact // Send the token
+            };
 
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
 
-         // You'll also need these helper functions and the storage key defined:
-         const CART_STORAGE_KEY = 'shoppingCartSession'; // Or 'shoppingCart' if you prefer localStorage
-         console.log("Cart page script loaded."); // Added for debugging
+                if (response.ok) {
+                    const result = await response.json();
+                    showToast(result.message || 'Your message has been sent!');
+                    form.reset(); // Clear form fields
+                } else {
+                    const errorText = await response.text();
+                    console.error("Server responded with non-OK status for contact form. Response body:", errorText);
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        showToast(errorData.message || 'Failed to send message. Please try again.');
+                    } catch (e) {
+                        showToast('Failed to send message. Server returned an unexpected response.');
+                    }
+                }
+            } catch (error) {
+                console.error('Error during contact form submission (network or fetch issue):', error);
+                showToast('An unexpected error occurred. Please check your network connection.');
+            } finally {
+                // Always reset reCAPTCHA after submission attempt for this form
+                grecaptcha.reset(); // Resets the reCAPTCHA widget (clears token)
+                recaptchaTokenContact = null; // Clear the stored token in JS
+            }
+        }
+
+        // Helper function to show the toast message
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.classList.add("show");
+            // Hide the toast after 3 seconds
+            setTimeout(function(){
+                toast.classList.remove("show");
+            }, 3000); // 3000 milliseconds = 3 seconds
+        }
+
+        // You'll also need these helper functions and the storage key defined:
+        const CART_STORAGE_KEY = 'shoppingCartSession'; // Or 'shoppingCart' if you prefer localStorage
+        console.log("Cart page script loaded."); // Added for debugging
 
         // Get references to DOM elements
-        const cartContentDiv = document.getElementById('cart-content-container'); // Updated to target the new container
+        const cartContentDiv = document.getElementById('cart-content-container');
+        // Updated to target the new container
         const subtotalAmountSpan = document.getElementById('subtotal-amount');
         const totalAmountSpan = document.getElementById('total-amount');
         const countdownTimerSpan = document.getElementById('countdown-timer');
@@ -501,7 +572,7 @@
         const deliveryAmountSpan = document.getElementById('delivery-amount');
 
         // Add this new function to update the cart count display
-         function updateCartCount() {
+        function updateCartCount() {
              const cart = getCartItems();
              const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
              const cartCountElement = document.getElementById('cart-item-count');
@@ -577,7 +648,7 @@
         function updateCartCount() {
             const cart = getCartItems();
             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            console.log("totalItems", totalItems, cartItemCountSpan);
+            //console.log("totalItems", totalItems, cartItemCountSpan);
             if (cartItemCountSpan) {
                 cartItemCountSpan.textContent = totalItems;
                 if (totalItems > 0) {
@@ -642,10 +713,9 @@
             });
         }
 
-
-            // Define your delivery cost here
-            let DELIVERY_COST = 0.00; // Example delivery cost
-            function renderCart() {
+        // Define your delivery cost here
+        let DELIVERY_COST = 0.00; // Example delivery cost
+        function renderCart() {
             const cart = getCartItems();  // Retrieve cart items from sessionStorage
             let subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
             //add delivery
