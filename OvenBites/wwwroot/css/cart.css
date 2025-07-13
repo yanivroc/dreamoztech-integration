@@ -1,4 +1,112 @@
-﻿.custom-h1 {
+﻿/* Base styling for the cart summary section */
+.cart-summary-section {
+    background-color: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    max-width: 28rem;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 32px;
+    margin-bottom: 32px;
+}
+
+.customer-info-fields {
+    margin-top: 24px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 24px;
+}
+
+.form-row {
+    margin-bottom: 16px;
+}
+
+    .form-row label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 4px;
+    }
+
+    .form-row input[type="text"],
+    .form-row input[type="tel"],
+    .form-row input[type="email"],
+    .form-row textarea {
+        display: block;
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        outline: none;
+        font-size: 0.875rem;
+        font-family: "Inter", sans-serif;
+        box-sizing: border-box;
+    }
+
+        .form-row input[type="text"]:focus,
+        .form-row input[type="tel"]:focus,
+        .form-row input[type="email"]:focus,
+        .form-row textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
+
+    .form-row textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+.address-helper-text {
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.btn-checkout {
+    width: 100%;
+    padding: 8px 16px;
+    background-color: #2563eb;
+    color: white;
+    font-weight: 600;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: background-color 0.3s ease;
+    outline: none;
+}
+
+    .btn-checkout:hover {
+        background-color: #1d4ed8;
+    }
+
+    .btn-checkout:focus {
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5), 0 0 0 4px rgba(59, 130, 246, 0.5);
+    }
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+    .summary-row.total {
+        font-weight: 700;
+        font-size: 1.125rem;
+        border-top: 1px solid #d1d5db;
+        padding-top: 12px;
+        margin-top: 12px;
+    }
+
+@media (min-width: 640px) {
+    .cart-summary-section {
+        padding: 16px;
+    }
+}
+
+.custom-h1 {
     text-align: center;
 }
 
@@ -46,7 +154,7 @@
     .product-col img {
         width: 60px;
         height: 60px;
-        object-cover: true;
+        object-fit: cover;
         border-radius: 8px;
         margin-right: 12px;
     }
@@ -92,33 +200,24 @@
         color: #dc2626;
     }
 
-/* Summary Row adjustments */
 .summary-row {
     display: flex;
     justify-content: space-between;
     font-size: 16px;
     font-weight: 800;
     margin-bottom: 12px;
-    padding: 0 1rem; /* Add padding for spacing */
+    padding: 0 1rem;
 }
 
     .summary-row span {
         color: #374151;
     }
 
-/* Container for Summary Section */
-.cart-summary-section {
-    max-width: 800px; /* Limit the width of the summary section */
-    margin: 0 auto; /* Center the content */
-    padding: 0 1rem; /* Add padding for spacing */
-    text-align: center; /* Center the text */
-}
-
 .summary-action-buttons {
     display: flex;
     gap: 12px;
     justify-content: center;
-    margin-top: 16px; /* Add some space from the summary */
+    margin-top: 16px;
 }
 
 .btn {
@@ -162,23 +261,20 @@
     font-weight: 600;
 }
 
-/* Container Styling */
 #cart-content-container {
     width: 92%;
-    max-width: 1200px; /* Control max width of cart */
-    margin: 0 auto; /* Center the container */
-    padding: 20px; /* Add padding for spacing */
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
-/* --- Responsive Table for Mobile --- */
 @media screen and (max-width: 768px) {
     .cart-table {
-        border: 0; /* Remove outer table border */
-        box-shadow: none; /* Remove table shadow */
+        border: 0;
+        box-shadow: none;
     }
 
         .cart-table thead {
-            /* Hide table headers on small screens */
             display: none;
         }
 
@@ -188,89 +284,202 @@
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Add a subtle shadow to each row */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .cart-table td {
             display: block;
             text-align: right;
-            padding-left: 50%; /* Make space for the data-label */
+            padding-left: 50%;
             position: relative;
-            border-top: 1px solid #e5e7eb; /* Add a border between stacked cells */
+            border-top: 1px solid #e5e7eb;
             padding-top: 12px;
             padding-bottom: 12px;
         }
 
             .cart-table td:first-child {
-                border-top: none; /* No top border for the first cell in a row */
+                border-top: none;
             }
 
             .cart-table td::before {
-                /* This creates the "header" for each cell on mobile */
                 content: attr(data-label);
                 position: absolute;
                 left: 16px;
-                width: calc(50% - 32px); /* Adjust width to fit padding */
+                width: calc(50% - 32px);
                 text-align: left;
                 font-weight: 600;
                 color: #4b5563;
             }
 
-    /* Specific adjustments for content within cells */
     .product-col {
-        flex-direction: row; /* Keep image and text side-by-side */
-        justify-content: flex-end; /* Align to the right in the cell */
-        align-items: center; /* Vertically center items */
-        text-align: right; /* Align text within product-col to the right */
-        padding-right: 16px; /* Add some padding on the right */
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+        text-align: right;
+        padding-right: 16px;
     }
 
         .product-col img {
-            margin-right: 12px; /* Restore right margin for spacing from text */
-            margin-bottom: 0; /* Remove bottom margin */
+            margin-right: 12px;
+            margin-bottom: 0;
         }
 
         .product-col h3 {
-            text-align: right; /* Ensure product name is right-aligned */
-            font-size: 15px; /* Slightly reduce font size for mobile */
+            text-align: right;
+            font-size: 15px;
         }
 
     .quantity-controls {
-        justify-content: flex-end; /* Align quantity controls to the right */
-        flex-wrap: wrap; /* Allow buttons to wrap if needed */
+        justify-content: flex-end;
+        flex-wrap: wrap;
     }
 
     .quantity-btn {
-        padding: 6px 10px; /* Adjust padding for smaller buttons */
+        padding: 6px 10px;
     }
 
     .remove-item-btn {
-        margin-left: 8px; /* Add a small margin to separate from quantity buttons */
+        margin-left: 8px;
     }
 
-    /* Adjust summary section for smaller screens */
     .cart-summary-section {
-        padding: 0 16px; /* Adjust padding for better mobile fit */
+        padding: 0 16px;
     }
 
     .summary-row {
-        flex-direction: column; /* Stack total and checkout message */
-        align-items: flex-end; /* Align text to the right */
-        padding: 12px 16px; /* Add padding for better spacing */
-        border-top: 1px solid #e5e7eb; /* Add a border to separate from table */
+        flex-direction: column;
+        align-items: flex-end;
+        padding: 12px 16px;
+        border-top: 1px solid #e5e7eb;
     }
 
         .summary-row span {
-            margin-top: 8px; /* Space between total and text */
+            margin-top: 8px;
         }
 
     .summary-action-buttons {
-        flex-direction: column; /* Stack buttons vertically */
-        gap: 10px; /* Adjust gap between stacked buttons */
-        padding: 0 16px 20px; /* Add padding to the bottom */
+        flex-direction: column;
+        gap: 10px;
+        padding: 0 16px 20px;
     }
 
     .btn {
-        width: 100%; /* Make buttons full width */
+        width: 100%;
+    }
+}
+
+.payment-info-fields {
+    margin-top: 24px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 24px;
+}
+
+.payment-heading {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.form-row-inline {
+    display: flex;
+    gap: 16px;
+}
+
+    .form-row-inline .form-col {
+        flex: 1;
+    }
+
+        .form-row-inline .form-col input {
+            width: 100%;
+        }
+
+@media screen and (max-width: 768px) {
+    .form-row-inline {
+        flex-direction: column;
+        gap: 0;
+    }
+
+        .form-row-inline .form-col {
+            margin-bottom: 16px;
+        }
+
+            .form-row-inline .form-col:last-child {
+                margin-bottom: 0;
+            }
+}
+
+.accepted-cards-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    padding: 8px 0;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 16px;
+}
+
+.legend-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-right: 8px;
+}
+
+.card-icons-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.card-icon {
+    /* Adjusted for Font Awesome icons */
+    font-size: 2rem; /* Control icon size directly */
+    width: 32px; /* Maintain a consistent box for alignment */
+    height: 24px; /* Maintain a consistent box for alignment */
+    display: flex; /* Use flexbox to center the icon within its box */
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Explicit colors for Font Awesome brand icons */
+.fa-cc-visa {
+    color: #1A1F71 !important; /* Visa blue */
+}
+
+.fa-cc-mastercard {
+    color: #EB001B !important; /* Mastercard red */
+}
+
+.fa-cc-amex {
+    color: #2671B6 !important; /* American Express blue */
+}
+
+.fa-cc-discover {
+    color: #FF6200 !important; /* Discover orange */
+}
+
+.fa-cc-jcb {
+    color: #0079C1 !important; /* JCB blue */
+}
+
+.fa-credit-card { /* For eftpos, using generic credit card icon */
+    color: #6B7280 !important; /* A neutral grey */
+}
+
+@media screen and (max-width: 480px) {
+    .accepted-cards-legend {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .legend-text {
+        margin-right: 0;
+        margin-bottom: 4px;
     }
 }

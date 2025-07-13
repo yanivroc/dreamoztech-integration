@@ -17,8 +17,8 @@ namespace OvenBites.Controllers
         {
             _dataService = dataService;
             _configuration = configuration;
-            _recaptchaSiteKey = _configuration["Recaptcha:SiteKey"];
-            _recaptchaSecretKey = _configuration["Recaptcha:SecretKey"];
+            _recaptchaSiteKey = _configuration["GoogleReCaptcha:SiteKey"];
+            _recaptchaSecretKey = _configuration["GoogleReCaptcha:SecretKey"];
         }
 
         public async Task<IActionResult> Index(string pageName)
