@@ -340,7 +340,11 @@ namespace OvenBites.Controllers
                 Console.WriteLine($"Square Payment Successful. Payment ID: {payment.Id}, Status: {payment.Status}");
 
                 // --- 4. Order Fulfillment (e.g., save to database, send confirmation email) ---
-                // Example: Save order details to your database
+                // Set MemberId in app settings
+                // Create member account, get created user id
+                // Create member invoice
+                // Create member order
+                // Create member contact
                 // var order = new Order
                 // {
                 //     CustomerId = /* Get from auth or create new */,
