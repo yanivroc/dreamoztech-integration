@@ -35,7 +35,7 @@ namespace OvenBites.Controllers
             var sliderPost = await _dataService.GetPostByTitleAsync("Slider-Ovenbites");
             var popupPost = await _dataService.GetPostByTitleAsync("Flavor-of-the-Month");
 
-            var domainPath = "https://dreamoztech.com/";
+            var domainPath = _configuration["General:DomainPath"];
             var memberFullName = memberDetailObject?.MemberFullName?.Replace(" ", "") ?? string.Empty;
             var memberLogoImagePath = memberDetailObject != null ? new Uri(domainPath + memberDetailObject.ProfilePicture) : null;
 

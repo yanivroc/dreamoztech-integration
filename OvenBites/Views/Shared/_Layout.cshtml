@@ -11,6 +11,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Tailwind CSS CDN - Added for direct use of Tailwind classes -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script type="text/javascript" src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
@@ -53,7 +55,7 @@
                 foreach (var pic in Model.SliderPics.OrderBy(p => p.DisplayOrder))
                 {
                     <div class="slide @(slideIndex == 0 ? "active" : "")"
-                         style="background-image: url('@(pic.PicPath)');">
+                    style="background-image: url('@(pic.PicPath)');">
                         <h2>@pic.PicDescription</h2>
                     </div>
                     slideIndex++;
@@ -63,16 +65,19 @@
         <button class="prev-button">&#10094;</button>
         <button class="next-button">&#10095;</button>
         <div class="dots-container">
+            @{
+                int slideIndexDot = 0;
+            }
             @foreach (var pic in Model.SliderPics.OrderBy(p => p.DisplayOrder))
             {
-                <span class="dot @(slideIndex == 0 ? "active" : "")" data-slide-index="@slideIndex"></span>
-                slideIndex++;
+                <span class="dot @(slideIndexDot == 0 ? "active" : "")" data-slide-index="@slideIndexDot"></span>
+                slideIndexDot++;
             }
         </div>
     </section>
 
-    <div class="container">
-        <main role="main" class="pb-3">
+    <div class="container bg-white py-8 px-4 sm:px-6 lg:px-8 rounded-xl shadow-lg max-w-4xl mx-auto my-8">
+        <main role="main">
             @RenderBody()
         </main>
     </div>
@@ -184,52 +189,98 @@
         }
     </section>
 
-    <section id="About" class="section-container">
-        <div class="section-content">
-            <h2 class="text-3xl font-bold text-orange-700 mb-4">@Model.AboutPage.PageTitle</h2>
-            <p class="text-lg leading-relaxed mb-4">
-                @Html.Raw(Model.AboutPage.Description)
-            </p>
+    <section id="About" class="section-container bg-white py-8 px-4 sm:px-6 lg:px-8 rounded-xl shadow-lg">
+        <div class="section-content max-w-4xl mx-auto">
+            <!-- Flex container for text and image. Stacks vertically on small screens (flex-col) and becomes a row on medium screens and larger (md:flex-row). -->
+            <div class="flex flex-col md:flex-row md:items-start md:space-x-8">
+                <!-- Text content on the left. Ensure it takes full width on mobile and can shrink. -->
+                <div class="w-full md:w-1/2 mb-6 md:mb-0 min-w-0">
+                    <h2 class="text-3xl font-bold text-orange-700 mb-4 text-center md:text-left">@Model.AboutPage.PageTitle</h2>
+                    <p class="text-lg leading-relaxed mb-6 text-gray-700 text-center md:text-left">
+                        @Html.Raw(Model.AboutPage.Description)
+                    </p>
+                </div>
+                @{
+                    var itemImages = Model.AboutPage.Posts.FirstOrDefault();
+                    if (itemImages != null)
+                    {
+                        var itemImage = itemImages.Pics.FirstOrDefault();
+                        if (itemImage != null)
+                        {
+                            var itemImageUrl = new Uri(itemImage.PicPath);
+                            <!-- Image container on the right. Ensure it takes full width on mobile and can shrink. -->
+                            <div class="w-full mt-8 md:mt-0 flex justify-center md:w-1/2 min-w-0">
+                                <!-- Image styling: rounded corners, shadow, responsive width (max-w-full), auto height, border.
+                                     Crucially, md:max-w-xs limits the image to a maximum of 320px on medium screens and larger,
+                                     ensuring it doesn't get too big even if its container is larger. -->
+                                <img src="@itemImageUrl" alt="@Model.AboutPage.PageTitle" class="rounded-xl shadow-lg max-w-full h-auto object-cover border-4 border-orange-200 md:max-w-xs">
+                            </div>
+                        }
+                    }
+                }
+            </div>
         </div>
     </section>
+    
+    <section id="Contact" class="section-container bg-white py-8 px-4 sm:px-6 lg:px-8 rounded-xl shadow-lg">
+        <div class="section-content max-w-4xl mx-auto">
+            <!-- Flex container for image/form and text/map. Stacks vertically on small screens (flex-col) and becomes a row on medium screens and larger (md:flex-row). -->
+            <div class="flex flex-col md:flex-row md:items-start md:space-x-8">
+                <!-- Left column: Image and Contact Form -->
+                <div class="md:w-1/2 mb-6 md:mb-0 flex flex-col items-center md:items-start">
+                    @{
+                        var itemCImages = Model.ContactPage.Posts.FirstOrDefault();
+                        if (itemCImages != null)
+                        {
+                            var itemImage = itemCImages.Pics.FirstOrDefault();
+                            if (itemImage != null)
+                            {
+                                var itemImageUrl = new Uri(itemImage.PicPath);
+                                <div class="mb-8 flex justify-center w-full">
+                                    <img src="@itemImageUrl" alt="@Model.ContactPage.PageTitle" class="rounded-xl shadow-lg max-w-full h-auto object-cover border-4 border-orange-200 md:max-w-xs">
+                                </div>
+                            }
+                        }
+                    }
+                    <form id="contactForm" action="/Newsletter/contact" method="POST" onsubmit="return handleContactFormSubmit(event)" class="contact-form space-y-4 w-full">
+                        <div class="mb-4">
+                            <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Name:</label>
+                            <input type="text" id="name" name="name" placeholder="Your Name" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div class="mb-4">
+                            <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
+                            <input type="email" id="email" name="email" placeholder="your.email@example.com" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div class="mb-4">
+                            <label for="message" class="block text-gray-700 text-sm font-bold mb-2">Message:</label>
+                            <textarea id="message" name="message" placeholder="Your message..." rows="5" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <div class="g-recaptcha" data-sitekey="@Model.SiteKey"></div>
+                        </div>
+                        <div class="mb-4">
+                            <button type="submit" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-300">Send Message</button>
+                        </div>
+                    </form>
+                </div>
 
-    <section id="Contact" class="section-container">
-        <div class="section-content text-center md:text-left">
-            <h2 class="text-3xl font-bold text-orange-700 mb-4">@Model.ContactPage.PageTitle</h2>
-            <p class="text-lg leading-relaxed mb-6">
-                @Html.Raw(Model.ContactPage.Description)
-            </p>
-            <form id="contactForm" action="/Newsletter/contact" method="POST" onsubmit="return handleContactFormSubmit(event)" class="contact-form">
-                <div class="mb-4">
-                    <label for="name">Name:</label>
-                    <input type="text" id="name" name="name" placeholder="Your Name" required>
+                <!-- Right column: Text and Map -->
+                <div class="md:w-1/2 mt-8 md:mt-0 flex flex-col items-center md:items-start">
+                    <h2 class="text-3xl font-bold text-orange-700 mb-4 text-center md:text-left">@Model.ContactPage.PageTitle</h2>
+                    <p class="text-lg leading-relaxed mb-6 text-gray-700 text-center md:text-left">
+                        @Html.Raw(Model.ContactPage.Description)
+                    </p>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.835434509374!2d144.9537353153161!3d-37.8172097970799!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad642af0f11fd81%3A0xf577d6b3e9a9d7b!2sFederation%20Square!5e0!3m2!1sen!2sau!4v1678901234567!5m2!1sen!2sau"
+                            width="100%"
+                            height="300"
+                            style="border:0;"
+                            allowfullscreen=""
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"
+                            class="contact-map rounded-xl shadow-lg mt-4"
+                            title="Our Location on Google Maps"></iframe>
                 </div>
-                <div class="mb-4">
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" name="email" placeholder="your.email@example.com" required>
-                </div>
-                <div class="mb-4">
-                    <label for="message">Message:</label>
-                    <textarea id="message" name="message" placeholder="Your message..." rows="5" required></textarea>
-                </div>
-                <div class="mb-4">
-                    <div class="g-recaptcha" data-sitekey="@Model.SiteKey"></div>
-                </div>
-                <div class="mb-4">
-                    <button type="submit">Send Message</button>
-                </div>
-            </form>
-        </div>
-        <div class="section-content">
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.835434509374!2d144.9537353153161!3d-37.8172097970799!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad642af0f11fd81%3A0xf577d6b3e9a9d7b!2sFederation%20Square!5e0!3m2!1sen!2sau!4v1678901234567!5m2!1sen!2sau"
-                    width="100%"
-                    height="300"
-                    style="border:0;"
-                    allowfullscreen=""
-                    loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade"
-                    class="contact-map"
-                    title="Our Location on Google Maps"></iframe>
+            </div>
         </div>
     </section>
 
@@ -268,7 +319,7 @@
 
     <!-- Popup Overlay -->
     <div class="popup-overlay" id="popup">
-        <div class="popup">
+        <div class="popup flex flex-col items-center">
             <button class="close-btn" onclick="closePopup()">×</button>
             <img src="@Model.PopupPostImagePath" alt="@Model.PopupPost.BizName">
             <h2>@Model.PopupPost.MetaDesc</h2>
