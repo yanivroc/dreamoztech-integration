@@ -55,7 +55,7 @@
                 foreach (var pic in Model.SliderPics.OrderBy(p => p.DisplayOrder))
                 {
                     <div class="slide @(slideIndex == 0 ? "active" : "")"
-                    style="background-image: url('@(pic.PicPath)');">
+                         style="background-image: url('@(pic.PicPath)');">
                         <h2>@pic.PicDescription</h2>
                     </div>
                     slideIndex++;
@@ -76,7 +76,7 @@
         </div>
     </section>
 
-    <div class="container bg-white py-8 px-4 sm:px-6 lg:px-8 rounded-xl shadow-lg max-w-4xl mx-auto my-8">
+    <div class="container bg-white py-8 px-4 sm:px-6 lg:px-8 rounded-xl shadow-lg max-w-4xl mx-auto my-8 font-semibold">
         <main role="main">
             @RenderBody()
         </main>
@@ -183,8 +183,8 @@
             <div class="product">
                 <img src="@itemImageUrl" alt="@item.BizName">
                 <h3><a href="/@item.BizDisplayTitle">@item.BizName</a></h3>
-                <p class="item-price">@itemPrice</p>
-                <button class="add-to-cart-btn w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition duration-300" onclick="addToCart('@item.BizName', @itemPrice, '@item.BizDisplayTitle', '@itemImageUrl')">Add to Cart</button>
+                <p class="item-price py-4">@itemPrice AUD</p>
+                <button class="add-to-cart-btn w-full bg-green-500 text-white py-4 px-4 rounded-md hover:bg-green-600 transition duration-300" onclick="addToCart('@item.BizName', @itemPrice, '@item.BizDisplayTitle', '@itemImageUrl')">Add to Cart</button>
             </div>
         }
     </section>
@@ -221,7 +221,7 @@
             </div>
         </div>
     </section>
-    
+
     <section id="Contact" class="section-container bg-white py-8 px-4 sm:px-6 lg:px-8 rounded-xl shadow-lg">
         <div class="section-content max-w-4xl mx-auto">
             <!-- Flex container for image/form and text/map. Stacks vertically on small screens (flex-col) and becomes a row on medium screens and larger (md:flex-row). -->
@@ -270,7 +270,7 @@
                     <p class="text-lg leading-relaxed mb-6 text-gray-700 text-center md:text-left">
                         @Html.Raw(Model.ContactPage.Description)
                     </p>
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.835434509374!2d144.9537353153161!3d-37.8172097970799!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad642af0f11fd81%3A0xf577d6b3e9a9d7b!2sFederation%20Square!5e0!3m2!1sen!2sau!4v1678901234567!5m2!1sen!2sau"
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d50369.12098746446!2d144.75421545!3d-37.90542505!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad68873e2148ac7%3A0x5045675218cdc90!2sPoint%20Cook%20VIC%203030%2C%20Australia!5e0!3m2!1sen!2sin!4v1754176507480!5m2!1sen!2sin"
                             width="100%"
                             height="300"
                             style="border:0;"
@@ -278,7 +278,7 @@
                             loading="lazy"
                             referrerpolicy="no-referrer-when-downgrade"
                             class="contact-map rounded-xl shadow-lg mt-4"
-                            title="Our Location on Google Maps"></iframe>
+                            title="Oven Bites Location on Google Maps"></iframe>
                 </div>
             </div>
         </div>

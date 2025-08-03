@@ -9,7 +9,7 @@ using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 namespace OvenBites.Controllers
 {
     [ApiController]
-    [Route("[controller]")] // This means the base route for this controller is /Newsletter
+    [Route("[controller]")]
     public class NewsletterController : ControllerBase
     {
         private readonly string _recaptchaSecretKey;
@@ -17,12 +17,14 @@ namespace OvenBites.Controllers
         private readonly IConfiguration _configuration;
         private readonly SquareClient _squareClient;
         private readonly string _locationId;
+        private readonly string _captchaSiteVerifyUrl;
 
         public NewsletterController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _recaptchaSecretKey = _configuration["GoogleReCaptcha:SecretKey"];
+            _captchaSiteVerifyUrl = _configuration["GoogleReCaptcha:CaptchaVerifyUrl"];
 
             var accessToken = _configuration["Square:AccessToken"];
             var environmentString = _configuration["Square:Environment"];
@@ -55,7 +57,7 @@ namespace OvenBites.Controllers
             }
         }
 
-        // NEW ACTION FOR CONTACT FORM
+        // ACTION FOR CONTACT FORM
         [HttpPost("contact")] // Full route: /Newsletter/contact
         public async Task<IActionResult> Contact([FromBody] ContactFormModel model)
         {
@@ -85,7 +87,7 @@ namespace OvenBites.Controllers
                     new KeyValuePair<string, string>("response", model.RecaptchaToken)
                 });
 
-                var recaptchaResponse = await httpClient.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
+                var recaptchaResponse = await httpClient.PostAsync(_captchaSiteVerifyUrl, content);
                 recaptchaResponse.EnsureSuccessStatusCode(); // Throws an exception for 4xx or 5xx responses
 
                 var recaptchaResponseBody = await recaptchaResponse.Content.ReadAsStringAsync();
@@ -165,7 +167,7 @@ namespace OvenBites.Controllers
                     new KeyValuePair<string, string>("response", model.RecaptchaToken)
                 });
 
-                var recaptchaResponse = await httpClient.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
+                var recaptchaResponse = await httpClient.PostAsync(_captchaSiteVerifyUrl, content);
                 recaptchaResponse.EnsureSuccessStatusCode(); // Throws an exception for 4xx or 5xx responses
 
                 var recaptchaResponseBody = await recaptchaResponse.Content.ReadAsStringAsync();
@@ -270,14 +272,13 @@ namespace OvenBites.Controllers
             }
 
             var httpClient = _httpClientFactory.CreateClient(); // Use a local variable to avoid confusion with _squareClient
-            var recaptchaVerificationUrl = "https://www.google.com/recaptcha/api/siteverify";
             var content = new FormUrlEncodedContent(new[]
             {
                 new KeyValuePair<string, string>("secret", recaptchaSecretKey),
                 new KeyValuePair<string, string>("response", model.RecaptchaResponse)
             });
 
-            var recaptchaResponse = await httpClient.PostAsync(recaptchaVerificationUrl, content);
+            var recaptchaResponse = await httpClient.PostAsync(_captchaSiteVerifyUrl, content);
             recaptchaResponse.EnsureSuccessStatusCode();
 
             var recaptchaResultString = await recaptchaResponse.Content.ReadAsStringAsync();
