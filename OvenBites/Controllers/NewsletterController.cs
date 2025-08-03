@@ -113,7 +113,7 @@ namespace OvenBites.Controllers
             {
                 Console.Error.WriteLine($"An unexpected error occurred during reCAPTCHA verification for contact form: {ex.Message}");
                 return StatusCode(500, new { message = "An unexpected error occurred during reCAPTCHA verification." });
-            }
+            } 
 
             // 3. Process the Contact Form (e.g., send an email, save to database)
             // In a real application, you would implement your email sending logic here.
