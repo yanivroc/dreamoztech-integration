@@ -1,9 +1,9 @@
 ﻿// Global variables for reCAPTCHA and summary amounts
 let recaptchaToken = null;
+let recaptchaTokenContact = null;
 let subtotal = 0;
 let DELIVERY_COST = 0;
 let total = 0;
-let recaptchaTokenContact = null; // Global variable for contact form reCAPTCHA
 
 // Square Web Payments SDK objects
 let payments;
@@ -56,7 +56,14 @@ function initAutocomplete() {
 // This function is called by reCAPTCHA when the user successfully completes the challenge.
 function recaptchaCompleted(token) {
     recaptchaToken = token;
-    console.log('reCAPTCHA token received:', recaptchaToken);
+    console.log('reCAPTCHA Subscription token received:', recaptchaToken);
+    // You might enable the Pay button here if it was disabled initially
+    // if (payButton) payButton.disabled = false; // Re-enable if needed
+}
+
+function recaptchaCompletedContact(token) {
+    recaptchaTokenContact = token;
+    console.log('reCAPTCHA Contact token received:', recaptchaTokenContact);
     // You might enable the Pay button here if it was disabled initially
     // if (payButton) payButton.disabled = false; // Re-enable if needed
 }
@@ -516,6 +523,65 @@ function updateCartCount() {
     }
 }
 
+// --- Contact Form Logic ---
+async function handleContactFormSubmit(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const name = formData.get('name');
+    const email = formData.get('email');
+    const message = formData.get('message');
+
+    if (!recaptchaTokenContact) {
+        showToast('Please complete the reCAPTCHA verification for the contact form.');
+        return false;
+    }
+
+    console.log("Final Contact Form reCAPTCHA Token:", recaptchaTokenContact);
+
+    const data = {
+        name: name,
+        email: email,
+        message: message,
+        recaptchaToken: recaptchaTokenContact
+    };
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            showToast(result.message || 'Your message has been sent!');
+            form.reset();
+        } else {
+            const errorText = await response.text();
+            console.error("Server responded with non-OK status for contact form. Response body:", errorText);
+            try {
+                const errorData = JSON.parse(errorText);
+                showToast(errorData.message || 'Failed to send message. Please try again.');
+            } catch (e) {
+                showToast('Failed to send message. Server returned an unexpected response.');
+            }
+        }
+    } catch (error) {
+        console.error('Error during contact form submission (network or fetch issue):', error);
+        showToast('An unexpected error occurred. Please check your network connection.');
+    } finally {
+        if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
+            grecaptcha.reset();
+        }
+        recaptchaTokenContact = null;
+    }
+}
+
 // This function runs when the initial HTML document has been completely loaded and parsed.
 document.addEventListener('DOMContentLoaded', function () {
     // Initialize DOM element references here
@@ -706,64 +772,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- Contact Form Logic ---
-    async function handleContactFormSubmit(event) {
-        event.preventDefault();
-
-        const form = event.target;
-        const formData = new FormData(form);
-        const name = formData.get('name');
-        const email = formData.get('email');
-        const message = formData.get('message');
-
-        if (!recaptchaTokenContact) {
-            showToast('Please complete the reCAPTCHA verification for the contact form.');
-            return false;
-        }
-
-        console.log("Final Contact Form reCAPTCHA Token:", recaptchaTokenContact);
-
-        const data = {
-            name: name,
-            email: email,
-            message: message,
-            recaptchaToken: recaptchaTokenContact
-        };
-
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                showToast(result.message || 'Your message has been sent!');
-                form.reset();
-            } else {
-                const errorText = await response.text();
-                console.error("Server responded with non-OK status for contact form. Response body:", errorText);
-                try {
-                    const errorData = JSON.parse(errorText);
-                    showToast(errorData.message || 'Failed to send message. Please try again.');
-                } catch (e) {
-                    showToast('Failed to send message. Server returned an unexpected response.');
-                }
-            }
-        } catch (error) {
-            console.error('Error during contact form submission (network or fetch issue):', error);
-            showToast('An unexpected error occurred. Please check your network connection.');
-        } finally {
-            if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
-                grecaptcha.reset();
-            }
-            recaptchaTokenContact = null;
-        }
-    }
+    
 
     // Initial calls when DOM is ready
     renderCart();

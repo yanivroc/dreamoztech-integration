@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OvenBites.Api;
 using OvenBites.Models;
+using OvenBites.Service;
 using Square;
 using Square.Exceptions;
 using Square.Models;
@@ -15,16 +17,22 @@ namespace OvenBites.Controllers
         private readonly string _recaptchaSecretKey;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
+        private readonly IDataService _dataService;
+        private readonly IPostService _postService;
         private readonly SquareClient _squareClient;
         private readonly string _locationId;
         private readonly string _captchaSiteVerifyUrl;
 
-        public NewsletterController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public NewsletterController(IHttpClientFactory httpClientFactory, IConfiguration configuration, IEmailService emailService, IPostService postService, IDataService dataService)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _recaptchaSecretKey = _configuration["GoogleReCaptcha:SecretKey"];
             _captchaSiteVerifyUrl = _configuration["GoogleReCaptcha:CaptchaVerifyUrl"];
+            _emailService = emailService;
+            _postService = postService;
+            _dataService = dataService;
 
             var accessToken = _configuration["Square:AccessToken"];
             var environmentString = _configuration["Square:Environment"];
@@ -43,7 +51,7 @@ namespace OvenBites.Controllers
                 Console.WriteLine($"Warning: Square:Environment config value '{environmentString}' is invalid. Defaulting to Sandbox.");
             }
 
-            // CORRECTED: SquareClient instantiation using Builder pattern for v22.0.0
+            // SquareClient instantiation using Builder pattern for v22.0.0
             _squareClient = new SquareClient.Builder()
                 .Environment(squareEnvironment) // Square.Environment enum should be recognized now
                 .AccessToken(accessToken)
@@ -55,6 +63,9 @@ namespace OvenBites.Controllers
             {
                 throw new ArgumentNullException("Square:LocationId is not configured in appsettings.json");
             }
+
+            _postService = postService;
+            _dataService = dataService;
         }
 
         // ACTION FOR CONTACT FORM
@@ -73,68 +84,86 @@ namespace OvenBites.Controllers
             }
 
             // 2. reCAPTCHA Server-Side Verification
-            if (string.IsNullOrWhiteSpace(model.RecaptchaToken))
-            {
-                return BadRequest(new { message = "reCAPTCHA token is missing." });
-            }
+            //if (string.IsNullOrWhiteSpace(model.RecaptchaToken))
+            //{
+            //    return BadRequest(new { message = "reCAPTCHA token is missing." });
+            //}
 
+            //try
+            //{
+            //    var httpClient = _httpClientFactory.CreateClient();
+            //    var content = new FormUrlEncodedContent(new[]
+            //    {
+            //        new KeyValuePair<string, string>("secret", _recaptchaSecretKey),
+            //        new KeyValuePair<string, string>("response", model.RecaptchaToken)
+            //    });
+
+            //    var recaptchaResponse = await httpClient.PostAsync(_captchaSiteVerifyUrl, content);
+            //    recaptchaResponse.EnsureSuccessStatusCode(); // Throws an exception for 4xx or 5xx responses
+
+            //    var recaptchaResponseBody = await recaptchaResponse.Content.ReadAsStringAsync();
+            //    var verificationResult = JsonSerializer.Deserialize<RecaptchaVerificationResponse>(recaptchaResponseBody);
+
+            //    if (verificationResult == null || !verificationResult.Success)
+            //    {
+            //        Console.WriteLine($"reCAPTCHA verification failed for contact form. Error codes: {string.Join(", ", verificationResult?.ErrorCodes ?? new List<string>())}");
+            //        return BadRequest(new { message = "reCAPTCHA verification failed. Please try again." });
+            //    }
+            //}
+            //catch (HttpRequestException ex)
+            //{
+            //    Console.Error.WriteLine($"Error verifying reCAPTCHA for contact form: {ex.Message}");
+            //    return StatusCode(500, new { message = "Error verifying reCAPTCHA. Please try again later." });
+            //}
+            //catch (JsonException ex)
+            //{
+            //    Console.Error.WriteLine($"Error parsing reCAPTCHA response for contact form: {ex.Message}");
+            //    return StatusCode(500, new { message = "Error processing reCAPTCHA response." });
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.Error.WriteLine($"An unexpected error occurred during reCAPTCHA verification for contact form: {ex.Message}");
+            //    return StatusCode(500, new { message = "An unexpected error occurred during reCAPTCHA verification." });
+            //}
+
+            // 3. Post request to DT API
+            // Get Member Email
+            var memberDetailObject = await _dataService.GetMemberDetailsAsync();
+            var memberEmail = memberDetailObject.MemberEmail;
+            // Get Member Id
+            var memberId = await _postService.GetMemberIdByEmailAsync(memberEmail);
+            model.MemberId = memberId;
             try
             {
-                var httpClient = _httpClientFactory.CreateClient();
-                var content = new FormUrlEncodedContent(new[]
+                var postSuccess = await _postService.RegisterMemberContactAsync(model);
+                if (!postSuccess)
                 {
-                    new KeyValuePair<string, string>("secret", _recaptchaSecretKey),
-                    new KeyValuePair<string, string>("response", model.RecaptchaToken)
-                });
-
-                var recaptchaResponse = await httpClient.PostAsync(_captchaSiteVerifyUrl, content);
-                recaptchaResponse.EnsureSuccessStatusCode(); // Throws an exception for 4xx or 5xx responses
-
-                var recaptchaResponseBody = await recaptchaResponse.Content.ReadAsStringAsync();
-                var verificationResult = JsonSerializer.Deserialize<RecaptchaVerificationResponse>(recaptchaResponseBody);
-
-                if (verificationResult == null || !verificationResult.Success)
-                {
-                    Console.WriteLine($"reCAPTCHA verification failed for contact form. Error codes: {string.Join(", ", verificationResult?.ErrorCodes ?? new List<string>())}");
-                    return BadRequest(new { message = "reCAPTCHA verification failed. Please try again." });
+                   
                 }
-            }
-            catch (HttpRequestException ex)
-            {
-                Console.Error.WriteLine($"Error verifying reCAPTCHA for contact form: {ex.Message}");
-                return StatusCode(500, new { message = "Error verifying reCAPTCHA. Please try again later." });
-            }
-            catch (JsonException ex)
-            {
-                Console.Error.WriteLine($"Error parsing reCAPTCHA response for contact form: {ex.Message}");
-                return StatusCode(500, new { message = "Error processing reCAPTCHA response." });
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"An unexpected error occurred during reCAPTCHA verification for contact form: {ex.Message}");
-                return StatusCode(500, new { message = "An unexpected error occurred during reCAPTCHA verification." });
-            } 
+                
+            }
 
-            // 3. Process the Contact Form (e.g., send an email, save to database)
-            // In a real application, you would implement your email sending logic here.
-            // You might inject an IEmailSender service.
-            Console.WriteLine($"Contact Form Submission: Name={model.Name}, Email={model.Email}, Message={model.Message}");
-
-            // Example:
-            // var emailSent = await _emailSender.SendEmailAsync(
-            //     "your_receiving_email@example.com", // Your email address
-            //     $"New Contact from {model.Name} ({model.Email})",
-            //     model.Message
-            // );
-
-            // if (emailSent)
-            // {
-            return Ok(new { message = "Your message has been sent successfully!" });
-            // }
-            // else
-            // {
-            //    return StatusCode(500, new { message = "Failed to send your message. Please try again." });
-            // }
+            // 4. Send email
+            var receivingEmail = memberEmail;
+            var emailBody = $"<h3>New Contact from {model.Name}</h3>" +
+                            $"<p><strong>Email:</strong> {model.Email}</p>" +
+                            $"<p><strong>Message:</strong> {model.Message}</p>";
+            var emailSent = await _emailService.SendEmailAsync(
+                                receivingEmail,
+                                $"New Contact from {model.Name}",
+                                emailBody
+                            );
+            if (emailSent)
+            {
+                return Ok(new { message = "Your message has been sent successfully!" });
+            }
+            else
+            {
+                return StatusCode(500, new { message = "Failed to send your message. Please try again." });
+            }
         }
 
         // Action for Newsletter Subscription

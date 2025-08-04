@@ -1,4 +1,5 @@
 using OvenBites.Api;
+using OvenBites.Models;
 using System.Net; // Keep this as you use HttpStatusCode
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,10 +8,15 @@ var builder = WebApplication.CreateBuilder(args);
 // AddControllersWithViews includes AddControllers
 builder.Services.AddControllersWithViews();
 
+// Configure the EmailConfig section from appsettings.json
+builder.Services.Configure<EmailConfig>(builder.Configuration.GetSection("EmailConfig"));
+
 // Register your ApiService here!
 // Choose the appropriate lifetime: AddScoped, AddTransient, or AddSingleton
 builder.Services.AddScoped<ApiService>();
-builder.Services.AddScoped<OvenBites.Services.IDataService, OvenBites.Services.DataService>();
+builder.Services.AddScoped<OvenBites.Service.IDataService, OvenBites.Service.DataService>();
+builder.Services.AddScoped<OvenBites.Service.IEmailService, OvenBites.Service.EmailService>();
+builder.Services.AddScoped<OvenBites.Service.IPostService, OvenBites.Service.PostService>();
 
 // Add MemoryCache services
 builder.Services.AddMemoryCache();

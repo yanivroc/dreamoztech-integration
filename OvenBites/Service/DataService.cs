@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using OvenBites.Api;
 using OvenBites.Models;
 
-namespace OvenBites.Services
+namespace OvenBites.Service
 {
     public class DataService : IDataService
     {

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using OvenBites.Api;
 using OvenBites.Models;
 
-namespace OvenBites.Services
+namespace OvenBites.Service
 {
     public interface IDataService
     {
