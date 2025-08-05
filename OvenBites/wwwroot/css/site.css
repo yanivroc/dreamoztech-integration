@@ -157,7 +157,7 @@ nav {
 .hero-slider {
     position: relative;
     width: 100%;
-    height: 440px; /* Adjust slider height as needed */
+    height: 450px; /* Adjust slider height as needed */
     overflow: hidden;
     z-index: 5;
 }
@@ -267,6 +267,8 @@ nav {
         padding: 0 10px;
         max-height: 30px;
         display: block;
+        font-size: large;
+        font-weight: bold;
     }
 
     .product p {
