@@ -131,29 +131,29 @@ namespace OvenBites.Controllers
             var memberDetailObject = await _dataService.GetMemberDetailsAsync();
             var memberEmail = memberDetailObject.MemberEmail;
             // Get Member Id
-            var memberId = await _postService.GetMemberIdByEmailAsync(memberEmail);
-            model.MemberId = memberId;
-            try
-            {
-                var postSuccess = await _postService.RegisterMemberContactAsync(model);
-                if (!postSuccess)
-                {
+            //var memberId = await _postService.GetMemberIdByEmailAsync(memberEmail);
+            //model.MemberId = memberId;
+            //try
+            //{
+            //    var postSuccess = await _postService.RegisterMemberMessageAsync(model);
+            //    if (!postSuccess)
+            //    {
                    
-                }
-            }
-            catch (Exception ex)
-            {
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
                 
-            }
+            //}
 
             // 4. Send email
             var receivingEmail = memberEmail;
-            var emailBody = $"<h3>New Contact from {model.Name}</h3>" +
+            var emailBody = $"<h3>New contact from {model.Name}</h3>" +
                             $"<p><strong>Email:</strong> {model.Email}</p>" +
                             $"<p><strong>Message:</strong> {model.Message}</p>";
             var emailSent = await _emailService.SendEmailAsync(
                                 receivingEmail,
-                                $"New Contact from {model.Name}",
+                                $"New contact from {model.Name}",
                                 emailBody
                             );
             if (emailSent)
@@ -182,54 +182,69 @@ namespace OvenBites.Controllers
             }
 
             // 2. reCAPTCHA Server-Side Verification
-            if (string.IsNullOrWhiteSpace(model.RecaptchaToken))
-            {
-                return BadRequest(new { message = "reCAPTCHA token is missing." });
-            }
+            //if (string.IsNullOrWhiteSpace(model.RecaptchaToken))
+            //{
+            //    return BadRequest(new { message = "reCAPTCHA token is missing." });
+            //}
 
-            try
-            {
-                var httpClient = _httpClientFactory.CreateClient();
-                var content = new FormUrlEncodedContent(new[]
-                {
-                    new KeyValuePair<string, string>("secret", _recaptchaSecretKey),
-                    new KeyValuePair<string, string>("response", model.RecaptchaToken)
-                });
+            //try
+            //{
+            //    var httpClient = _httpClientFactory.CreateClient();
+            //    var content = new FormUrlEncodedContent(new[]
+            //    {
+            //        new KeyValuePair<string, string>("secret", _recaptchaSecretKey),
+            //        new KeyValuePair<string, string>("response", model.RecaptchaToken)
+            //    });
 
-                var recaptchaResponse = await httpClient.PostAsync(_captchaSiteVerifyUrl, content);
-                recaptchaResponse.EnsureSuccessStatusCode(); // Throws an exception for 4xx or 5xx responses
+            //    var recaptchaResponse = await httpClient.PostAsync(_captchaSiteVerifyUrl, content);
+            //    recaptchaResponse.EnsureSuccessStatusCode(); // Throws an exception for 4xx or 5xx responses
 
-                var recaptchaResponseBody = await recaptchaResponse.Content.ReadAsStringAsync();
-                var verificationResult = JsonSerializer.Deserialize<RecaptchaVerificationResponse>(recaptchaResponseBody);
+            //    var recaptchaResponseBody = await recaptchaResponse.Content.ReadAsStringAsync();
+            //    var verificationResult = JsonSerializer.Deserialize<RecaptchaVerificationResponse>(recaptchaResponseBody);
 
-                if (verificationResult == null || !verificationResult.Success)
-                {
-                    Console.WriteLine($"reCAPTCHA verification failed for subscribe. Error codes: {string.Join(", ", verificationResult?.ErrorCodes ?? new List<string>())}");
-                    return BadRequest(new { message = "reCAPTCHA verification failed. Please try again." });
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                Console.Error.WriteLine($"Error verifying reCAPTCHA for subscribe: {ex.Message}");
-                return StatusCode(500, new { message = "Error verifying reCAPTCHA. Please try again later." });
-            }
-            catch (JsonException ex)
-            {
-                Console.Error.WriteLine($"Error parsing reCAPTCHA response for subscribe: {ex.Message}");
-                return StatusCode(500, new { message = "Error processing reCAPTCHA response." });
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"An unexpected error occurred during reCAPTCHA verification for subscribe: {ex.Message}");
-                return StatusCode(500, new { message = "An unexpected error occurred during reCAPTCHA verification." });
-            }
+            //    if (verificationResult == null || !verificationResult.Success)
+            //    {
+            //        Console.WriteLine($"reCAPTCHA verification failed for subscribe. Error codes: {string.Join(", ", verificationResult?.ErrorCodes ?? new List<string>())}");
+            //        return BadRequest(new { message = "reCAPTCHA verification failed. Please try again." });
+            //    }
+            //}
+            //catch (HttpRequestException ex)
+            //{
+            //    Console.Error.WriteLine($"Error verifying reCAPTCHA for subscribe: {ex.Message}");
+            //    return StatusCode(500, new { message = "Error verifying reCAPTCHA. Please try again later." });
+            //}
+            //catch (JsonException ex)
+            //{
+            //    Console.Error.WriteLine($"Error parsing reCAPTCHA response for subscribe: {ex.Message}");
+            //    return StatusCode(500, new { message = "Error processing reCAPTCHA response." });
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.Error.WriteLine($"An unexpected error occurred during reCAPTCHA verification for subscribe: {ex.Message}");
+            //    return StatusCode(500, new { message = "An unexpected error occurred during reCAPTCHA verification." });
+            //}
 
             // 3. Process the Subscription
-            // In a real application, you would save 'model.Name' and 'model.Email' to a database
-            // or integrate with an email marketing service.
-            Console.WriteLine($"Newsletter Subscription: Name={model.Name}, Email={model.Email}");
-
-            return Ok(new { message = "Thank you for subscribing!" });
+            var memberDetailObject = await _dataService.GetMemberDetailsAsync();
+            var memberEmail = memberDetailObject.MemberEmail;
+            
+            // 4. Send email
+            var receivingEmail = memberEmail;
+            var emailBody = $"<h3>New subscription from {model.Name}</h3>" +
+                            $"<p><strong>Email:</strong> {model.Email}</p>";
+            var emailSent = await _emailService.SendEmailAsync(
+                                receivingEmail,
+                                $"New subscription from {model.Name}",
+                                emailBody
+                            );
+            if (emailSent)
+            {
+                return Ok(new { message = "Thank you for subscribing!" });
+            }
+            else
+            {
+                return StatusCode(500, new { message = "Failed to subscribe. Please try again." });
+            }
         }
 
         /// <summary>

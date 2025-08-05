@@ -1,6 +1,7 @@
 ﻿// Global variables for reCAPTCHA and summary amounts
 let recaptchaToken = null;
 let recaptchaTokenContact = null;
+let recaptchaTokenPayment = null;
 let subtotal = 0;
 let DELIVERY_COST = 0;
 let total = 0;
@@ -64,6 +65,13 @@ function recaptchaCompleted(token) {
 function recaptchaCompletedContact(token) {
     recaptchaTokenContact = token;
     console.log('reCAPTCHA Contact token received:', recaptchaTokenContact);
+    // You might enable the Pay button here if it was disabled initially
+    // if (payButton) payButton.disabled = false; // Re-enable if needed
+}
+
+function recaptchaCompletedPayment(token) {
+    recaptchaTokenPayment = token;
+    console.log('reCAPTCHA Payment token received:', recaptchaTokenPayment);
     // You might enable the Pay button here if it was disabled initially
     // if (payButton) payButton.disabled = false; // Re-enable if needed
 }
@@ -175,6 +183,11 @@ async function processPayment(event) {
         return false; // Prevent multiple submissions
     }
 
+    if (!recaptchaTokenPayment) {
+        showToast('Please complete the reCAPTCHA verification.');
+        return false;
+    }
+
     isProcessingPayment = true; // Set flag to true
     if (payButton) {
         payButton.disabled = true; // Disable the button
@@ -252,7 +265,7 @@ async function processPayment(event) {
                 notes: customerNotes
             },
             paymentToken: paymentToken,
-            recaptchaResponse: recaptchaToken
+            recaptchaResponse: recaptchaTokenPayment
         };
 
         console.log('Sending Payment Data to Backend:', paymentData);
@@ -582,6 +595,54 @@ async function handleContactFormSubmit(event) {
     }
 }
 
+// --- Subscription Form Logic ---
+async function handleSubscription(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const name = formData.get('name');
+    const email = formData.get('email');
+
+    if (!recaptchaToken) {
+        showToast('Please complete the reCAPTCHA verification.');
+        return false;
+    }
+
+    const data = {
+        name: name,
+        email: email,
+        recaptchaToken: recaptchaToken
+    };
+    console.log("data", data);
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            showToast(result.message || 'Subscription successful!');
+            form.reset();
+        } else {
+            const errorData = await response.json();
+            showToast(errorData.message || 'Subscription failed. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error during subscription:', error);
+        showToast('An unexpected error occurred. Please check your network connection.');
+    } finally {
+        if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
+            grecaptcha.reset();
+        }
+    }
+}
+
 // This function runs when the initial HTML document has been completely loaded and parsed.
 document.addEventListener('DOMContentLoaded', function () {
     // Initialize DOM element references here
@@ -601,7 +662,6 @@ document.addEventListener('DOMContentLoaded', function () {
     popupOverlayElement = document.getElementById("popup");
     toastElement = document.getElementById("toast"); // Initialize toastElement here
     payButton = document.getElementById('pay-button'); // Initialize payButton here
-
 
     function toggleMenu() {
         if (nav) {
@@ -723,56 +783,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- MAIN POPUP LOGIC INITIALIZATION ---
     // Show popup on initial page load (once per session)
     showPopupIfNeverShown();
-
-    // --- Subscription Form Logic ---
-    async function handleSubscription(event) {
-        event.preventDefault();
-
-        const form = event.target;
-        const formData = new FormData(form);
-        const name = formData.get('name');
-        const email = formData.get('email');
-
-        if (!recaptchaToken) {
-            showToast('Please complete the reCAPTCHA verification.');
-            return false;
-        }
-
-        const data = {
-            name: name,
-            email: email,
-            recaptchaToken: recaptchaToken
-        };
-        console.log("data", data);
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                showToast(result.message || 'Subscription successful!');
-                form.reset();
-            } else {
-                const errorData = await response.json();
-                showToast(errorData.message || 'Subscription failed. Please try again.');
-            }
-        } catch (error) {
-            console.error('Error during subscription:', error);
-            showToast('An unexpected error occurred. Please check your network connection.');
-        } finally {
-            if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
-                grecaptcha.reset();
-            }
-        }
-    }
-
-    
 
     // Initial calls when DOM is ready
     renderCart();

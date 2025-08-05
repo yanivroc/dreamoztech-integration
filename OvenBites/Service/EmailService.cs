@@ -27,13 +27,12 @@ namespace OvenBites.Service
 
             var mailMessage = new MailMessage
             {
-                From = new MailAddress(_emailConfig.Login), 
+                From = new MailAddress(_emailConfig.EmailFrom), 
                 Subject = subject,
                 Body = message,
                 IsBodyHtml = true,
             };
             mailMessage.To.Add(toEmail);
-            mailMessage.CC.Add("dreamoz.com.au@gmail.com");
 
             try
             {

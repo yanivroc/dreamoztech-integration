@@ -20,7 +20,7 @@ namespace OvenBites.Service
         /// </summary>
         /// <param name="contactRequest">The payload containing member contact details.</param>
         /// <returns>True if the contact was registered successfully, false otherwise.</returns>
-        public async Task<bool> RegisterMemberContactAsync(ContactFormModel contactRequest)
+        public async Task<bool> RegisterMemberMessageAsync(ContactFormModel contactRequest)
         {
             try
             {
@@ -28,7 +28,7 @@ namespace OvenBites.Service
 
                 // Define the API endpoint for registering member contacts
                 var apiEndpoint = _configuration["ApiSettings:ApiEndpoint"];
-                var endpoint = apiEndpoint + "/Ops/RegisterMemberContact";
+                var endpoint = apiEndpoint + "/Ops/RegisterMemberMessage";
 
                 // Send the POST request using the IApiService
                 var response = await _apiService.PostAsync(endpoint, contactRequest, token);
@@ -47,7 +47,6 @@ namespace OvenBites.Service
                                      contactRequest.Email, response.StatusCode, errorContent);
                     return false;
                 }
-                return true;
             }
             catch (HttpRequestException ex)
             {
@@ -83,7 +82,7 @@ namespace OvenBites.Service
             {
                 var token = await _apiService.GetTokenAsync();
                 var response = await _apiService.GetMemberIdAsync(token, email);
-                if (string.IsNullOrEmpty(response))
+                if (!string.IsNullOrEmpty(response))
                 {
                     var memberId = Convert.ToInt32(response);
                     return memberId;

@@ -4,7 +4,7 @@ namespace OvenBites.Service
 {
     public interface IPostService
     {
-        Task<bool> RegisterMemberContactAsync(ContactFormModel contactRequest);
+        Task<bool> RegisterMemberMessageAsync(ContactFormModel contactRequest);
         Task<int?> GetMemberIdByEmailAsync(string email);
     }
 }
