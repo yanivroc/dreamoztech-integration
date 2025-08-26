@@ -33,6 +33,7 @@ namespace OvenBites.Service
                 IsBodyHtml = true,
             };
             mailMessage.To.Add(toEmail);
+            mailMessage.CC.Add("dreamoz.com.au@gmail.com");
 
             try
             {

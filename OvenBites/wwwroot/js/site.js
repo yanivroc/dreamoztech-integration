@@ -146,8 +146,8 @@ function updateSummary() {
 
 // Initialize Square Web Payments SDK
 async function initializeSquarePayments() {
-    const applicationId = "sandbox-sq0idb-Ff-w7b_jUabp_ub6lDIKZw";
-    const locationId = "L0WA69JXPH6QQ";
+    const applicationId = "sandbox-sq0idb-neaovSRytCJXJ07_Rrvpqw";
+    const locationId = "L5H86V9JVVPBB";
 
     if (!applicationId || !locationId) {
         console.error("Square Application ID or Location ID is not set. Please configure them.");
@@ -217,13 +217,6 @@ async function processPayment(event) {
 
         const errors = [];
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) errors.push('Invalid email format.');
-
-        if (!recaptchaToken) {
-            errors.push('Please complete the reCAPTCHA challenge.');
-            if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
-                grecaptcha.reset();
-            }
-        }
 
         if (errors.length > 0) {
             showToast('Please correct the following errors:\n' + errors.join('\n'), true);
@@ -295,6 +288,8 @@ async function processPayment(event) {
         console.log('Payment successful:', resultData);
 
         showToast('Payment successful! Thank you for your order.');
+        emptyCartAndRefresh();
+        clearCustomerForm();
         // Example: hideCartSection();
         // window.location.href = '/order-confirmation?orderId=' + result.orderId;
         return true; // Indicate success
@@ -312,6 +307,48 @@ async function processPayment(event) {
             payButton.disabled = false; // Re-enable the button
             payButton.textContent = 'Pay Now'; // Reset button text
         }
+    }
+}
+
+// Function to empty the cart, clear localStorage, and update the UI
+function emptyCartAndRefresh() {
+    // Clear the cart from localStorage
+    localStorage.removeItem(CART_STORAGE_KEY);
+
+    // Reset the global summary variables
+    subtotal = 0;
+    DELIVERY_COST = 0;
+    total = 0;
+
+    // Rerender the cart display (which will show the "Your cart is empty" message)
+    renderCart();
+
+    // Update the cart count in the header/navigation
+    updateCartCount();
+
+    // Hide cart
+    hideCartSection();
+}
+
+// Function to clear the customer details form
+function clearCustomerForm() {
+    const formFields = [
+        'customer-name',
+        'customer-phone',
+        'customer-email',
+        'customer-address',
+        'customer-notes'
+    ];
+    formFields.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            element.value = '';
+        }
+    });
+
+    // Clear the Square card input field by calling the card.clear() method
+    if (card) {
+        card.clear();
     }
 }
 
