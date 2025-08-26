@@ -1,8 +1,14 @@
 using OvenBites.Api;
 using OvenBites.Models;
+using Serilog;
 using System.Net; // Keep this as you use HttpStatusCode
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Serilog configuration from appsettings.json
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services));
 
 // Add services to the container.
 // AddControllersWithViews includes AddControllers
@@ -60,6 +66,9 @@ builder.Services.AddLogging(config =>
 });
 
 var app = builder.Build();
+
+// Make sure this is called before any other middleware that you want to log
+app.UseSerilogRequestLogging();
 
 app.Logger.LogInformation("Starting Application");
 

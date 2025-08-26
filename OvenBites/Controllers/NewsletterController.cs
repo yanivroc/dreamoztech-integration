@@ -6,6 +6,7 @@ using Square;
 using Square.Exceptions;
 using Square.Models;
 using System.Globalization;
+using System.Reflection;
 using System.Text.Json;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 
@@ -24,8 +25,9 @@ namespace OvenBites.Controllers
         private readonly SquareClient _squareClient;
         private readonly string _locationId;
         private readonly string _captchaSiteVerifyUrl;
+        private readonly ILogger<NewsletterController> _logger;
 
-        public NewsletterController(IHttpClientFactory httpClientFactory, IConfiguration configuration, IEmailService emailService, IPostService postService, IDataService dataService)
+        public NewsletterController(IHttpClientFactory httpClientFactory, IConfiguration configuration, IEmailService emailService, IPostService postService, IDataService dataService, ILogger<NewsletterController> logger)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
@@ -49,7 +51,7 @@ namespace OvenBites.Controllers
             {
                 // Default to Sandbox if parsing fails or config is missing/invalid
                 squareEnvironment = Square.Environment.Sandbox;
-                Console.WriteLine($"Warning: Square:Environment config value '{environmentString}' is invalid. Defaulting to Sandbox.");
+                _logger.LogWarning($"Warning: Square:Environment config value '{environmentString}' is invalid. Defaulting to Sandbox.");
             }
 
             // SquareClient instantiation using Builder pattern for v22.0.0
@@ -67,6 +69,7 @@ namespace OvenBites.Controllers
 
             _postService = postService;
             _dataService = dataService;
+            _logger = logger;
         }
 
         // ACTION FOR CONTACT FORM
@@ -85,47 +88,47 @@ namespace OvenBites.Controllers
             }
 
             // 2. reCAPTCHA Server-Side Verification
-            //if (string.IsNullOrWhiteSpace(model.RecaptchaToken))
-            //{
-            //    return BadRequest(new { message = "reCAPTCHA token is missing." });
-            //}
+            if (string.IsNullOrWhiteSpace(model.RecaptchaToken))
+            {
+                return BadRequest(new { message = "reCAPTCHA token is missing." });
+            }
 
-            //try
-            //{
-            //    var httpClient = _httpClientFactory.CreateClient();
-            //    var content = new FormUrlEncodedContent(new[]
-            //    {
-            //        new KeyValuePair<string, string>("secret", _recaptchaSecretKey),
-            //        new KeyValuePair<string, string>("response", model.RecaptchaToken)
-            //    });
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient();
+                var content = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("secret", _recaptchaSecretKey),
+                    new KeyValuePair<string, string>("response", model.RecaptchaToken)
+                });
 
-            //    var recaptchaResponse = await httpClient.PostAsync(_captchaSiteVerifyUrl, content);
-            //    recaptchaResponse.EnsureSuccessStatusCode(); // Throws an exception for 4xx or 5xx responses
+                var recaptchaResponse = await httpClient.PostAsync(_captchaSiteVerifyUrl, content);
+                recaptchaResponse.EnsureSuccessStatusCode(); // Throws an exception for 4xx or 5xx responses
 
-            //    var recaptchaResponseBody = await recaptchaResponse.Content.ReadAsStringAsync();
-            //    var verificationResult = JsonSerializer.Deserialize<RecaptchaVerificationResponse>(recaptchaResponseBody);
+                var recaptchaResponseBody = await recaptchaResponse.Content.ReadAsStringAsync();
+                var verificationResult = JsonSerializer.Deserialize<RecaptchaVerificationResponse>(recaptchaResponseBody);
 
-            //    if (verificationResult == null || !verificationResult.Success)
-            //    {
-            //        Console.WriteLine($"reCAPTCHA verification failed for contact form. Error codes: {string.Join(", ", verificationResult?.ErrorCodes ?? new List<string>())}");
-            //        return BadRequest(new { message = "reCAPTCHA verification failed. Please try again." });
-            //    }
-            //}
-            //catch (HttpRequestException ex)
-            //{
-            //    Console.Error.WriteLine($"Error verifying reCAPTCHA for contact form: {ex.Message}");
-            //    return StatusCode(500, new { message = "Error verifying reCAPTCHA. Please try again later." });
-            //}
-            //catch (JsonException ex)
-            //{
-            //    Console.Error.WriteLine($"Error parsing reCAPTCHA response for contact form: {ex.Message}");
-            //    return StatusCode(500, new { message = "Error processing reCAPTCHA response." });
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.Error.WriteLine($"An unexpected error occurred during reCAPTCHA verification for contact form: {ex.Message}");
-            //    return StatusCode(500, new { message = "An unexpected error occurred during reCAPTCHA verification." });
-            //}
+                if (verificationResult == null || !verificationResult.Success)
+                {
+                    _logger.LogError($"reCAPTCHA verification failed for contact form. Error codes: {string.Join(", ", verificationResult?.ErrorCodes ?? new List<string>())}");
+                    return BadRequest(new { message = "reCAPTCHA verification failed. Please try again." });
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError($"Error verifying reCAPTCHA for contact form: {ex.Message}");
+                return StatusCode(500, new { message = "Error verifying reCAPTCHA. Please try again later." });
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError($"Error parsing reCAPTCHA response for contact form: {ex.Message}");
+                return StatusCode(500, new { message = "Error processing reCAPTCHA response." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An unexpected error occurred during reCAPTCHA verification for contact form: {ex.Message}");
+                return StatusCode(500, new { message = "An unexpected error occurred during reCAPTCHA verification." });
+            }
 
             // 3. Post request to DT API
             // Get Member Email
@@ -149,12 +152,12 @@ namespace OvenBites.Controllers
 
             // 4. Send email
             var receivingEmail = memberEmail;
-            var emailBody = $"<h3>New contact from {model.Name}</h3>" +
+            var emailBody = $"<h3>New contact from {MakeNameCapitals(model.Name)}</h3>" +
                             $"<p><strong>Email:</strong> {model.Email}</p>" +
                             $"<p><strong>Message:</strong> {model.Message}</p>";
             var emailSent = await _emailService.SendEmailAsync(
                                 receivingEmail,
-                                $"New contact from {model.Name}",
+                                $"New contact from {MakeNameCapitals(model.Name)}",
                                 emailBody
                             );
             if (emailSent)
@@ -183,47 +186,47 @@ namespace OvenBites.Controllers
             }
 
             // 2. reCAPTCHA Server-Side Verification
-            //if (string.IsNullOrWhiteSpace(model.RecaptchaToken))
-            //{
-            //    return BadRequest(new { message = "reCAPTCHA token is missing." });
-            //}
+            if (string.IsNullOrWhiteSpace(model.RecaptchaToken))
+            {
+                return BadRequest(new { message = "reCAPTCHA token is missing." });
+            }
 
-            //try
-            //{
-            //    var httpClient = _httpClientFactory.CreateClient();
-            //    var content = new FormUrlEncodedContent(new[]
-            //    {
-            //        new KeyValuePair<string, string>("secret", _recaptchaSecretKey),
-            //        new KeyValuePair<string, string>("response", model.RecaptchaToken)
-            //    });
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient();
+                var content = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("secret", _recaptchaSecretKey),
+                    new KeyValuePair<string, string>("response", model.RecaptchaToken)
+                });
 
-            //    var recaptchaResponse = await httpClient.PostAsync(_captchaSiteVerifyUrl, content);
-            //    recaptchaResponse.EnsureSuccessStatusCode(); // Throws an exception for 4xx or 5xx responses
+                var recaptchaResponse = await httpClient.PostAsync(_captchaSiteVerifyUrl, content);
+                recaptchaResponse.EnsureSuccessStatusCode(); // Throws an exception for 4xx or 5xx responses
 
-            //    var recaptchaResponseBody = await recaptchaResponse.Content.ReadAsStringAsync();
-            //    var verificationResult = JsonSerializer.Deserialize<RecaptchaVerificationResponse>(recaptchaResponseBody);
+                var recaptchaResponseBody = await recaptchaResponse.Content.ReadAsStringAsync();
+                var verificationResult = JsonSerializer.Deserialize<RecaptchaVerificationResponse>(recaptchaResponseBody);
 
-            //    if (verificationResult == null || !verificationResult.Success)
-            //    {
-            //        Console.WriteLine($"reCAPTCHA verification failed for subscribe. Error codes: {string.Join(", ", verificationResult?.ErrorCodes ?? new List<string>())}");
-            //        return BadRequest(new { message = "reCAPTCHA verification failed. Please try again." });
-            //    }
-            //}
-            //catch (HttpRequestException ex)
-            //{
-            //    Console.Error.WriteLine($"Error verifying reCAPTCHA for subscribe: {ex.Message}");
-            //    return StatusCode(500, new { message = "Error verifying reCAPTCHA. Please try again later." });
-            //}
-            //catch (JsonException ex)
-            //{
-            //    Console.Error.WriteLine($"Error parsing reCAPTCHA response for subscribe: {ex.Message}");
-            //    return StatusCode(500, new { message = "Error processing reCAPTCHA response." });
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.Error.WriteLine($"An unexpected error occurred during reCAPTCHA verification for subscribe: {ex.Message}");
-            //    return StatusCode(500, new { message = "An unexpected error occurred during reCAPTCHA verification." });
-            //}
+                if (verificationResult == null || !verificationResult.Success)
+                {
+                    _logger.LogError($"reCAPTCHA verification failed for subscribe. Error codes: {string.Join(", ", verificationResult?.ErrorCodes ?? new List<string>())}");
+                    return BadRequest(new { message = "reCAPTCHA verification failed. Please try again." });
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError($"Error verifying reCAPTCHA for subscribe: {ex.Message}");
+                return StatusCode(500, new { message = "Error verifying reCAPTCHA. Please try again later." });
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError($"Error parsing reCAPTCHA response for subscribe: {ex.Message}");
+                return StatusCode(500, new { message = "Error processing reCAPTCHA response." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An unexpected error occurred during reCAPTCHA verification for subscribe: {ex.Message}");
+                return StatusCode(500, new { message = "An unexpected error occurred during reCAPTCHA verification." });
+            }
 
             // 3. Process the Subscription
             var memberDetailObject = await _dataService.GetMemberDetailsAsync();
@@ -231,11 +234,11 @@ namespace OvenBites.Controllers
             
             // 4. Send email
             var receivingEmail = memberEmail;
-            var emailBody = $"<h3>New subscription from {model.Name}</h3>" +
+            var emailBody = $"<h3>New subscription from {MakeNameCapitals(model.Name)}</h3>" +
                             $"<p><strong>Email:</strong> {model.Email}</p>";
             var emailSent = await _emailService.SendEmailAsync(
                                 receivingEmail,
-                                $"New subscription from {model.Name}",
+                                $"New subscription from {MakeNameCapitals(model.Name)}",
                                 emailBody
                             );
             if (emailSent)
@@ -336,13 +339,8 @@ namespace OvenBites.Controllers
             }
 
             // --- 3. Square Payment Processing ---
-            var customerName = model.CustomerDetails.Name;
-
-            // Make sure the culture is appropriate, for example, for English
-            TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
-
             // Capitalize the first letter of each word
-            var capitalizedCustomerName = textInfo.ToTitleCase(customerName.ToLower());
+            var capitalizedCustomerName = MakeNameCapitals(model.CustomerDetails.Name); 
 
             // The nonce (paymentToken) is generated by Square's Web Payments SDK on the client-side.
             if (string.IsNullOrWhiteSpace(model.PaymentToken))
@@ -383,7 +381,7 @@ namespace OvenBites.Controllers
                     // Log Square API errors
                     foreach (var error in createPaymentResponse.Errors)
                     {
-                        Console.WriteLine($"Square API Error: Category={error.Category}, Code={error.Code}, Detail={error.Detail}, Field={error.Field}");
+                        _logger.LogError($"Square API Error: Category={error.Category}, Code={error.Code}, Detail={error.Detail}, Field={error.Field}");
                     }
                     // Return a generic error to the client for security
                     return StatusCode(500, new { message = "Payment failed. Please try again or contact support. (Square API Error)" });
@@ -476,8 +474,7 @@ namespace OvenBites.Controllers
                 // You should log the email failure for investigation.
                 if (!customerEmailSent || !ownerEmailSent)
                 {
-                    Console.WriteLine("Warning: One or more emails failed to send after a successful payment.");
-                    // Log the failure details here
+                    _logger.LogWarning("Warning: One or more emails failed to send after a successful payment.");
                 }
 
                 return Ok(new { message = "Payment and order processed successfully!", orderId = Guid.NewGuid().ToString(), squarePaymentId = payment.Id });
@@ -485,17 +482,17 @@ namespace OvenBites.Controllers
             catch (ApiException e) // ApiException is correctly referenced from Square.Exceptions
             {
                 // Handle Square SDK specific exceptions (e.g., network issues, invalid credentials)
-                Console.Error.WriteLine($"Square API Exception: {e.Message}");
+                _logger.LogError($"Square API Exception: {e.Message}");
                 foreach (var error in e.Errors)
                 {
-                    Console.WriteLine($"Square Exception Error: Category={error.Category}, Code={error.Code}, Detail={error.Detail}, Field={error.Field}");
+                    _logger.LogError($"Square Exception Error: Category={error.Category}, Code={error.Code}, Detail={error.Detail}, Field={error.Field}");
                 }
                 return StatusCode(500, new { message = "Payment processing failed due to an API error. Please try again. (Square SDK Exception)" });
             }
             catch (Exception ex)
             {
                 // Catch any other unexpected errors
-                Console.Error.WriteLine($"Unexpected error during payment processing: {ex.Message}");
+                _logger.LogError($"Unexpected error during payment processing: {ex.Message}");
                 return StatusCode(500, new { message = "An unexpected error occurred during payment processing. Please try again." });
             }
         }
@@ -512,6 +509,20 @@ namespace OvenBites.Controllers
             {
                 return false;
             }
+        }
+
+        // Helper method for name capitals
+        private string MakeNameCapitals(string name)
+        {
+            var customerName = name;
+
+            // Make sure the culture is appropriate, for example, for English
+            TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
+
+            // Capitalize the first letter of each word
+            var capitalizedCustomerName = textInfo.ToTitleCase(customerName.ToLower());
+
+            return capitalizedCustomerName;
         }
     }
 }

@@ -29,7 +29,7 @@ let payButton; // Reference to the payment submit button
 let isProcessingPayment = false;
 
 
-console.log("Cart page script loaded."); // Added for debugging
+//console.log("Cart page script loaded."); // Added for debugging
 
 // This function is called by the Google Maps API script once it's loaded.
 function initAutocomplete() {
@@ -42,12 +42,12 @@ function initAutocomplete() {
         autocomplete.addListener('place_changed', () => {
             const place = autocomplete.getPlace();
             if (!place.geometry) {
-                console.error("No details available for input: '" + place.name + "'");
+                //console.error("No details available for input: '" + place.name + "'");
                 addressInput.value = '';
                 return;
             }
             addressInput.value = place.formatted_address || '';
-            console.log('Selected Address Details:', place);
+            //console.log('Selected Address Details:', place);
         });
     } else {
         console.warn("Google Maps Autocomplete: 'customer-address' input not found.");
@@ -57,23 +57,17 @@ function initAutocomplete() {
 // This function is called by reCAPTCHA when the user successfully completes the challenge.
 function recaptchaCompleted(token) {
     recaptchaToken = token;
-    console.log('reCAPTCHA Subscription token received:', recaptchaToken);
-    // You might enable the Pay button here if it was disabled initially
-    // if (payButton) payButton.disabled = false; // Re-enable if needed
+    //console.log('reCAPTCHA Subscription token received:', recaptchaToken);
 }
 
 function recaptchaCompletedContact(token) {
     recaptchaTokenContact = token;
-    console.log('reCAPTCHA Contact token received:', recaptchaTokenContact);
-    // You might enable the Pay button here if it was disabled initially
-    // if (payButton) payButton.disabled = false; // Re-enable if needed
+    //console.log('reCAPTCHA Contact token received:', recaptchaTokenContact);
 }
 
 function recaptchaCompletedPayment(token) {
     recaptchaTokenPayment = token;
-    console.log('reCAPTCHA Payment token received:', recaptchaTokenPayment);
-    // You might enable the Pay button here if it was disabled initially
-    // if (payButton) payButton.disabled = false; // Re-enable if needed
+    //console.log('reCAPTCHA Payment token received:', recaptchaTokenPayment);
 }
 
 // Function to retrieve cart items from sessionStorage
@@ -146,8 +140,8 @@ function updateSummary() {
 
 // Initialize Square Web Payments SDK
 async function initializeSquarePayments() {
-    const applicationId = "sandbox-sq0idb-neaovSRytCJXJ07_Rrvpqw";
-    const locationId = "L5H86V9JVVPBB";
+    const applicationId = "sandbox-sq0idb-neaovSRytCJXJ07_Rrvpqw"; // todo update production
+    const locationId = "L5H86V9JVVPBB"; // todo update production
 
     if (!applicationId || !locationId) {
         console.error("Square Application ID or Location ID is not set. Please configure them.");
@@ -163,9 +157,9 @@ async function initializeSquarePayments() {
         const cardContainer = document.getElementById('card-container');
         if (cardContainer) {
             await card.attach('#card-container');
-            console.log("Square Web Payments SDK initialized successfully.");
+            //console.log("Square Web Payments SDK initialized successfully.");
         } else {
-            console.warn("Square Card container with ID 'card-container' not found. Card input will not render.");
+            //console.warn("Square Card container with ID 'card-container' not found. Card input will not render.");
             showToast('Payment card input area not found. Please check HTML.', true);
         }
     } catch (e) {
@@ -232,7 +226,7 @@ async function processPayment(event) {
         const result = await card.tokenize(); // Tokenization happens here
         if (result.status === 'OK') {
             paymentToken = result.token;
-            console.log('Square Payment Token:', paymentToken);
+            //console.log('Square Payment Token:', paymentToken);
         } else {
             let errorMessage = `Card tokenization failed: ${result.status}`;
             if (result.errors && result.errors.length > 0) {
@@ -261,7 +255,7 @@ async function processPayment(event) {
             recaptchaResponse: recaptchaTokenPayment
         };
 
-        console.log('Sending Payment Data to Backend:', paymentData);
+        //console.log('Sending Payment Data to Backend:', paymentData);
 
         const response = await fetch('/Newsletter/pay', {
             method: 'POST',
@@ -285,13 +279,11 @@ async function processPayment(event) {
         }
 
         const resultData = await response.json();
-        console.log('Payment successful:', resultData);
+        //console.log('Payment successful:', resultData);
 
         showToast('Payment successful! Thank you for your order.');
         emptyCartAndRefresh();
         clearCustomerForm();
-        // Example: hideCartSection();
-        // window.location.href = '/order-confirmation?orderId=' + result.orderId;
         return true; // Indicate success
     } catch (error) {
         console.error('Payment failed:', error);
@@ -378,7 +370,7 @@ function addToCart(itemName, itemPrice, itemPath, itemImageUrl) {
             existingItem.quantity++;
             showToast(`${itemName} added to cart!`);
         } else {
-            console.log(`Maximum quantity (6) reached for ${itemName}.`);
+            //console.log(`Maximum quantity (6) reached for ${itemName}.`);
             showToast(`Maximum quantity (6) reached for ${itemName}.`);
         }
     } else {
@@ -588,8 +580,6 @@ async function handleContactFormSubmit(event) {
         return false;
     }
 
-    console.log("Final Contact Form reCAPTCHA Token:", recaptchaTokenContact);
-
     const data = {
         name: name,
         email: email,
@@ -651,7 +641,6 @@ async function handleSubscription(event) {
         email: email,
         recaptchaToken: recaptchaToken
     };
-    console.log("data", data);
     try {
         const response = await fetch(form.action, {
             method: 'POST',
@@ -856,9 +845,9 @@ function showPopupIfNeverShown() {
     if (!hasPopupBeenShown) {
         popupOverlayElement.style.display = "flex";
         sessionStorage.setItem('hasPopupBeenShown', 'true');
-        console.log("Popup shown for the first time this session.");
+        //console.log("Popup shown for the first time this session.");
     } else {
-        console.log("Popup already shown this session, skipping.");
+        //console.log("Popup already shown this session, skipping.");
     }
 }
 
@@ -873,7 +862,7 @@ function closePopup() {
     }
     popupOverlayElement.style.display = "none";
     sessionStorage.setItem('hasPopupBeenShown', 'true');
-    console.log("Popup closed by user.");
+    //console.log("Popup closed by user.");
 }
 
 // Close popup and navigate to #products
