@@ -5,6 +5,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>@Model.MemberFullName</title>
+    <meta name="description" content="@Model.CurrentPage.SeoDescription">
+    <meta name="keywords" content="@Model.CurrentPage.SeoKeywords">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="@Model.MemberDetailObject.Website" />
+    <meta property="og:title" content="@Model.CurrentPage.PageTitle">
+    <meta property="og:description" content="@Model.CurrentPage.Description">
+    <meta property="og:image" content="@Model.MemberLogoImagePath">
+    <meta property="og:url" content="@Model.MemberDetailObject.Website">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="@Model.MemberLogoImagePath">
+    <meta name="twitter:site" content="@Model.MemberDetailObject.FacebookProfile">
+    <meta name="twitter:title" content="@Model.CurrentPage.PageTitle">
+    <meta name="twitter:description" content="@Model.CurrentPage.Description">
+    <meta name="twitter:image" content="@Model.MemberLogoImagePath">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,6 +62,12 @@
         </nav>
     </header>
 
+    <marquee direction="left" scrollamount="5" behavior="scroll">
+        <p style="color: red; font-size: 1.5rem; font-weight: bold;">
+            This website is in testing mode and not live yet.
+        </p>
+    </marquee>
+
     <section id="Home" class="hero-slider">
         <div class="slides-container">
             @{
@@ -55,7 +75,7 @@
                 foreach (var pic in Model.SliderPics.OrderBy(p => p.DisplayOrder))
                 {
                     <div class="slide @(slideIndex == 0 ? "active" : "")"
-                         style="background-image: url('@(pic.PicPath)');">
+                         style="background-image: url('@(pic.PicPath)');" title="@Model.HomePage.PageTitle">
                         <h2>@pic.PicDescription</h2>
                     </div>
                     slideIndex++;

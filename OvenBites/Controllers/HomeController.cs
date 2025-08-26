@@ -49,6 +49,14 @@ namespace OvenBites.Controllers
             // Now currentPost should be found from productPostsList (which is List<PostDto>)
             var currentPost = productPostsList?.FirstOrDefault(x => x.BizDisplayTitle.ToLower() == pageName.ToLower());
 
+            if (currentPage == null)
+            {
+                currentPage = new WebPageDto();
+                currentPage.PageTitle = currentPost.BizName;
+                currentPage.SeoKeywords = currentPost.MetaKey;
+                currentPage.SeoDescription = currentPost.MetaDesc;
+            }
+
             var popupPostImage = popupPost?.Pics?.FirstOrDefault();
             var popupPostImagePath = popupPostImage != null ? new Uri(popupPostImage.PicPath) : null;
 

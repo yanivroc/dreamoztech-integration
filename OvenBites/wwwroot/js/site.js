@@ -140,8 +140,11 @@ function updateSummary() {
 
 // Initialize Square Web Payments SDK
 async function initializeSquarePayments() {
-    const applicationId = "sandbox-sq0idb-neaovSRytCJXJ07_Rrvpqw"; // todo update production
-    const locationId = "L5H86V9JVVPBB"; // todo update production
+    const applicationId = "sandbox-sq0idb-neaovSRytCJXJ07_Rrvpqw"; // sandbox
+    const locationId = "L5H86V9JVVPBB"; // sandbox
+
+    //const applicationId = "sq0idp-XAB4GDN5v_8UWfhKIDgzaw"; // production
+    //const locationId = "L5WK27QFWXESX"; // production
 
     if (!applicationId || !locationId) {
         console.error("Square Application ID or Location ID is not set. Please configure them.");

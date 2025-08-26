@@ -89,5 +89,11 @@ namespace OvenBites.Service
             var response = await GetPostResponseAsync();
             return response?.Posts?.FirstOrDefault(x => x.BizDisplayTitle == title);
         }
+
+        public async Task<List<WebPageDto>> GetWebPageListAsync()
+        {
+            var response = await GetWebResponseAsync();
+            return response?.Webs?.FirstOrDefault()?.WebPages.ToList();
+        }
     }
 }
