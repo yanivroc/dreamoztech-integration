@@ -37,6 +37,8 @@
 </head>
 <body>
     <header>
+        <input type="hidden" id="application-id" value="@Model.ApplicationId">
+        <input type="hidden" id="location-id" value="@Model.LocationId">
         <h1><a href="/"> <img src="@Model.MemberLogoImagePath" alt="@Model.MemberFullName" class="header-logo"></a></h1>
         <button class="hamburger-menu" aria-label="Open navigation menu">
             <span class="bar"></span>

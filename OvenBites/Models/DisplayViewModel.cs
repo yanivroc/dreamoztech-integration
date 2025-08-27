@@ -11,6 +11,8 @@ namespace OvenBites.Models
             string memberFullName,
             string siteKey,
             string siteSecret,
+            string applicationId,
+            string locationId,
             Uri memberLogoImagePath,
             List<PostDto> productList,
             List<MenuItemRoot>? menuItems,
@@ -30,6 +32,8 @@ namespace OvenBites.Models
             MemberFullName = memberFullName;
             SiteKey = siteKey;
             SiteSecret = siteSecret;
+            ApplicationId = applicationId;
+            LocationId = locationId;
             MemberLogoImagePath = memberLogoImagePath;
             ProductList = productList;
             MenuItems = menuItems;
@@ -49,6 +53,8 @@ namespace OvenBites.Models
         public string MemberFullName { get; }
         public string SiteKey { get; }
         public string SiteSecret { get; }
+        public string ApplicationId { get; }
+        public string LocationId { get; }
         public Uri MemberLogoImagePath { get; }
         public List<PostDto> ProductList { get; }
         public List<MenuItemRoot>? MenuItems { get; }

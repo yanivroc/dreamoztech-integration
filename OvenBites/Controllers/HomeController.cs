@@ -12,6 +12,8 @@ namespace OvenBites.Controllers
         private readonly IDataService _dataService;
         private readonly string _recaptchaSiteKey;
         private readonly string _recaptchaSecretKey;
+        private readonly string _applicationId;
+        private readonly string _locationId;
         private readonly IConfiguration _configuration;
         public HomeController(IDataService dataService, IConfiguration configuration)
         {
@@ -19,6 +21,8 @@ namespace OvenBites.Controllers
             _configuration = configuration;
             _recaptchaSiteKey = _configuration["GoogleReCaptcha:SiteKey"];
             _recaptchaSecretKey = _configuration["GoogleReCaptcha:SecretKey"];
+            _applicationId = _configuration["Square:ApplicationId"];
+            _locationId = _configuration["Square:LocationId"];
         }
 
         public async Task<IActionResult> Index(string pageName)
@@ -70,6 +74,8 @@ namespace OvenBites.Controllers
                 memberFullName,
                 _recaptchaSiteKey,
                 _recaptchaSecretKey,
+                _applicationId,
+                _locationId,
                 memberLogoImagePath,
                 productPostsList,
                 menuItems,

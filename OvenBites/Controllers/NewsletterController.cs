@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using OvenBites.Api;
 using OvenBites.Models;
 using OvenBites.Service;
 using Square;
 using Square.Exceptions;
 using Square.Models;
 using System.Globalization;
-using System.Reflection;
 using System.Text.Json;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 
@@ -21,20 +19,18 @@ namespace OvenBites.Controllers
         private readonly IConfiguration _configuration;
         private readonly IEmailService _emailService;
         private readonly IDataService _dataService;
-        private readonly IPostService _postService;
         private readonly SquareClient _squareClient;
         private readonly string _locationId;
         private readonly string _captchaSiteVerifyUrl;
         private readonly ILogger<NewsletterController> _logger;
 
-        public NewsletterController(IHttpClientFactory httpClientFactory, IConfiguration configuration, IEmailService emailService, IPostService postService, IDataService dataService, ILogger<NewsletterController> logger)
+        public NewsletterController(IHttpClientFactory httpClientFactory, IConfiguration configuration, IEmailService emailService, IDataService dataService, ILogger<NewsletterController> logger)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _recaptchaSecretKey = _configuration["GoogleReCaptcha:SecretKey"];
             _captchaSiteVerifyUrl = _configuration["GoogleReCaptcha:CaptchaVerifyUrl"];
             _emailService = emailService;
-            _postService = postService;
             _dataService = dataService;
 
             var accessToken = _configuration["Square:AccessToken"];
@@ -67,7 +63,6 @@ namespace OvenBites.Controllers
                 throw new ArgumentNullException("Square:LocationId is not configured in appsettings.json");
             }
 
-            _postService = postService;
             _dataService = dataService;
             _logger = logger;
         }
@@ -130,28 +125,9 @@ namespace OvenBites.Controllers
                 return StatusCode(500, new { message = "An unexpected error occurred during reCAPTCHA verification." });
             }
 
-            // 3. Post request to DT API
-            // Get Member Email
+            // 3. Send email
             var memberDetailObject = await _dataService.GetMemberDetailsAsync();
-            var memberEmail = memberDetailObject.MemberEmail;
-            // Get Member Id
-            //var memberId = await _postService.GetMemberIdByEmailAsync(memberEmail);
-            //model.MemberId = memberId;
-            //try
-            //{
-            //    var postSuccess = await _postService.RegisterMemberMessageAsync(model);
-            //    if (!postSuccess)
-            //    {
-                   
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-                
-            //}
-
-            // 4. Send email
-            var receivingEmail = memberEmail;
+            var receivingEmail = memberDetailObject.MemberEmail;
             var emailBody = $"<h3>New contact from {MakeNameCapitals(model.Name)}</h3>" +
                             $"<p><strong>Email:</strong> {model.Email}</p>" +
                             $"<p><strong>Message:</strong> {model.Message}</p>";
@@ -228,12 +204,9 @@ namespace OvenBites.Controllers
                 return StatusCode(500, new { message = "An unexpected error occurred during reCAPTCHA verification." });
             }
 
-            // 3. Process the Subscription
+            // 3. Send email
             var memberDetailObject = await _dataService.GetMemberDetailsAsync();
-            var memberEmail = memberDetailObject.MemberEmail;
-            
-            // 4. Send email
-            var receivingEmail = memberEmail;
+            var receivingEmail = memberDetailObject.MemberEmail;
             var emailBody = $"<h3>New subscription from {MakeNameCapitals(model.Name)}</h3>" +
                             $"<p><strong>Email:</strong> {model.Email}</p>";
             var emailSent = await _emailService.SendEmailAsync(
