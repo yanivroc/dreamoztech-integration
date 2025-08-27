@@ -140,8 +140,11 @@ function updateSummary() {
 
 // Initialize Square Web Payments SDK
 async function initializeSquarePayments() {
-    const applicationId = "sandbox-sq0idb-neaovSRytCJXJ07_Rrvpqw"; // sandbox
-    const locationId = "L5H86V9JVVPBB"; // sandbox
+    // Get the application ID from the hidden input field
+    const applicationId = document.getElementById("application-id").value;
+
+    // Get the location ID from the hidden input field
+    const locationId = document.getElementById("location-id").value;
 
     if (!applicationId || !locationId) {
         console.error("Square Application ID or Location ID is not set. Please configure them.");
