@@ -19,12 +19,14 @@ namespace OvenBites.Service
 
         private async Task<string> GetAndCacheApiResponseAsync(string cacheKey, Func<string, Task<string>> apiCall)
         {
-            if (!_memoryCache.TryGetValue(cacheKey, out string responseJson))
-            {
-                string token = await _apiService.GetTokenAsync();
-                responseJson = await apiCall(token);
-                _memoryCache.Set(cacheKey, responseJson, TimeSpan.FromHours(24));
-            }
+            //if (!_memoryCache.TryGetValue(cacheKey, out string responseJson))
+            //{
+            //    string token = await _apiService.GetTokenAsync();
+            //    responseJson = await apiCall(token);
+            //    _memoryCache.Set(cacheKey, responseJson, TimeSpan.FromHours(24));
+            //}
+            string token = await _apiService.GetTokenAsync();
+            string responseJson = await apiCall(token);
             return responseJson;
         }
 
