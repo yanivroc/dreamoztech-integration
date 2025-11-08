@@ -223,7 +223,7 @@
                     </p>
                 </div>
                 @{
-                    var itemImages = Model.AboutPage.Posts.FirstOrDefault();
+                    var itemImages = Model.AboutPage.Posts.FirstOrDefault(x => x.PostType == "About");
                     if (itemImages != null)
                     {
                         var itemImage = itemImages.Pics.FirstOrDefault();
@@ -251,7 +251,7 @@
                 <!-- Left column: Image and Contact Form -->
                 <div class="md:w-1/2 mb-6 md:mb-0 flex flex-col items-center md:items-start">
                     @{
-                        var itemCImages = Model.ContactPage.Posts.FirstOrDefault();
+                        var itemCImages = Model.ContactPage.Posts.FirstOrDefault(x => x.PostType == "Contact");
                         if (itemCImages != null)
                         {
                             var itemImage = itemCImages.Pics.FirstOrDefault();
