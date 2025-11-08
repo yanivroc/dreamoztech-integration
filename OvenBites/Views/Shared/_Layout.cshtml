@@ -202,7 +202,8 @@
             var itemPrice = item.Attributes.FirstOrDefault(x => x.Title == "price").Value;
             var itemImage = item.Pics.FirstOrDefault();
             var itemImageUrl = new Uri(itemImage.PicPath);
-            if (itemPrice != null && Convert.ToInt32(itemPrice) > 0)
+            double productPrice = double.Parse(itemPrice);
+            if (productPrice > 0)
             {
                 <div class="product">
                     <a href="/@item.BizDisplayTitle"><img src="@itemImageUrl" alt="@item.BizName" /></a>
