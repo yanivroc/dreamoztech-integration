@@ -54,7 +54,7 @@ namespace DreamozTech.Controllers
             _squareClient = new SquareClient.Builder()
                 .Environment(squareEnvironment) // Square.Environment enum should be recognized now
                 .AccessToken(accessToken)
-                .UserAgentDetail("OvenBites_App_Csharp_Payment") // Custom user agent for your app
+                .UserAgentDetail("DreamozTech_App_Csharp_Payment") // Custom user agent for your app
                 .Build();
 
             _locationId = _configuration["Square:LocationId"];

@@ -9,7 +9,7 @@ namespace DreamozTech.Service
     {
         private readonly ApiService _apiService;
         private readonly IMemoryCache _memoryCache;
-        private const string CacheKeyPrefix = "OvenBites_";
+        private const string CacheKeyPrefix = "DreamozTech_";
 
         public DataService(ApiService apiService, IMemoryCache memoryCache)
         {

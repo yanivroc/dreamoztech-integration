@@ -36,7 +36,7 @@ namespace DreamozTech.Controllers
             // Updated call and type to List<PostDto>
             var productPostsList = await _dataService.GetIndividualProductPostsAsync();
             var web = (await _dataService.GetWebResponseAsync())?.Webs?.FirstOrDefault();
-            var sliderPost = await _dataService.GetPostByTitleAsync("Slider-Ovenbites");
+            var sliderPost = await _dataService.GetPostByTitleAsync("Slider-DreamozTech");
             var popupPost = await _dataService.GetPostByTitleAsync("Flavor-of-the-Month");
 
             var domainPath = _configuration["General:DomainPath"];
