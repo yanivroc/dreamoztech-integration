@@ -106,35 +106,65 @@ function showToast(message, isError = false) {
 }
 
 // Function to calculate and update summary values
+//function updateSummary() {
+//    const cart = getCartItems();
+//    subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+//    if (subtotalAmountSpan) subtotalAmountSpan.textContent = `$${subtotal.toFixed(2)}`;
+
+//    // Calculate DELIVERY_COST first based on checkbox state and cart quantity
+//    if (deliveryCheckbox && deliveryCheckbox.checked) {
+//        let totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+//        if (totalQuantity <= 6) {
+//            DELIVERY_COST = 9.99;
+//        } else if (totalQuantity > 6 && totalQuantity <= 12) {
+//            DELIVERY_COST = 12.99;
+//        } else {
+//            DELIVERY_COST = 15.00;
+//        }
+//        if (deliveryAmountSpan) {
+//            deliveryAmountSpan.textContent = `$${DELIVERY_COST.toFixed(2)}`;
+//            deliveryAmountSpan.style.display = 'inline';
+//        }
+//    } else {
+//        DELIVERY_COST = 0;
+//        if (deliveryAmountSpan) {
+//            deliveryAmountSpan.textContent = `$0.00`;
+//            deliveryAmountSpan.style.display = 'none';
+//        }
+//    }
+
+//    total = DELIVERY_COST + subtotal;
+//    if (totalAmountSpan) totalAmountSpan.textContent = `$${total.toFixed(2)}`;
+//}
+
 function updateSummary() {
     const cart = getCartItems();
-    subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    // 1. Calculate the subtotal (cost of items only)
+    const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     if (subtotalAmountSpan) subtotalAmountSpan.textContent = `$${subtotal.toFixed(2)}`;
 
-    // Calculate DELIVERY_COST first based on checkbox state and cart quantity
+    // 2. Determine delivery cost based on your new rules
     if (deliveryCheckbox && deliveryCheckbox.checked) {
-        let totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
-        if (totalQuantity <= 6) {
-            DELIVERY_COST = 9.99;
-        } else if (totalQuantity > 6 && totalQuantity <= 12) {
-            DELIVERY_COST = 12.99;
-        } else {
-            DELIVERY_COST = 15.00;
-        }
+        // If subtotal is 100 or more, it's free ($0), otherwise it's $10
+        DELIVERY_COST = subtotal >= 100 ? 0 : 10.00;
+
         if (deliveryAmountSpan) {
-            deliveryAmountSpan.textContent = `$${DELIVERY_COST.toFixed(2)}`;
+            // Show "Free" or the dollar amount
+            deliveryAmountSpan.textContent = DELIVERY_COST === 0 ? "Free" : `$${DELIVERY_COST.toFixed(2)}`;
             deliveryAmountSpan.style.display = 'inline';
         }
     } else {
+        // No delivery selected (e.g., Pickup)
         DELIVERY_COST = 0;
         if (deliveryAmountSpan) {
-            deliveryAmountSpan.textContent = `$0.00`;
             deliveryAmountSpan.style.display = 'none';
         }
     }
 
-    total = DELIVERY_COST + subtotal;
+    // 3. Calculate final total
+    const total = subtotal + DELIVERY_COST;
     if (totalAmountSpan) totalAmountSpan.textContent = `$${total.toFixed(2)}`;
 }
 
@@ -431,26 +461,44 @@ function renderCart() {
     const cart = getCartItems();
     subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+    //if (deliveryCheckbox && deliveryCheckbox.checked) {
+    //    let totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+    //    if (totalQuantity <= 6) {
+    //        DELIVERY_COST = 9.99;
+    //    } else if (totalQuantity > 6 && totalQuantity <= 12) {
+    //        DELIVERY_COST = 12.99;
+    //    } else {
+    //        DELIVERY_COST = 15.00;
+    //    }
+    //    if (deliveryAmountSpan) {
+    //        deliveryAmountSpan.textContent = `$${DELIVERY_COST.toFixed(2)}`;
+    //        deliveryAmountSpan.style.display = 'inline';
+    //    }
+    //} else {
+    //    DELIVERY_COST = 0;
+    //    if (deliveryAmountSpan) {
+    //        deliveryAmountSpan.textContent = `$0.00`;
+    //        deliveryAmountSpan.style.display = 'none';
+    //    }
+    //}
+    //total = DELIVERY_COST + subtotal;
+
     if (deliveryCheckbox && deliveryCheckbox.checked) {
-        let totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
-        if (totalQuantity <= 6) {
-            DELIVERY_COST = 9.99;
-        } else if (totalQuantity > 6 && totalQuantity <= 12) {
-            DELIVERY_COST = 12.99;
-        } else {
-            DELIVERY_COST = 15.00;
-        }
+        // New Logic: If subtotal is $100 or more, delivery is $0. Otherwise, it's $10.
+        DELIVERY_COST = subtotal >= 100 ? 0 : 10.00;
+
         if (deliveryAmountSpan) {
-            deliveryAmountSpan.textContent = `$${DELIVERY_COST.toFixed(2)}`;
+            // Display "Free" if cost is 0, otherwise show the $10.00
+            deliveryAmountSpan.textContent = DELIVERY_COST === 0 ? "Free" : `$${DELIVERY_COST.toFixed(2)}`;
             deliveryAmountSpan.style.display = 'inline';
         }
     } else {
         DELIVERY_COST = 0;
         if (deliveryAmountSpan) {
-            deliveryAmountSpan.textContent = `$0.00`;
             deliveryAmountSpan.style.display = 'none';
         }
     }
+
     total = DELIVERY_COST + subtotal;
 
     let cartContentHtml = '';
@@ -503,7 +551,7 @@ function renderCart() {
                                                             <button
                                                                 data-item-path="${item.itemPath}"
                                                                 data-action="increase"
-                                                                ${item.quantity >= 6 ? 'disabled' : ''}
+                                                                ${item.quantity >= 1 ? 'disabled' : ''}
                                                                 class="quantity-btn"
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
@@ -871,5 +919,5 @@ function closePopup() {
 // Close popup and navigate to #products
 function orderNowAndNavigate() {
     closePopup();
-    window.location.href = '#Cookies';
+    window.location.href = '#Products';
 }

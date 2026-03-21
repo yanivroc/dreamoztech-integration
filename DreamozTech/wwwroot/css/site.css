@@ -474,7 +474,8 @@ footer {
 
 /* New styles for About Us and Contact Us sections */
 .section-container {
-    padding: 60px 40px; /* Default padding */
+    /*padding: 60px 40px;  Default padding */
+    padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
@@ -896,17 +897,17 @@ footer {
 
 @media (min-width: 768px) {
     .product-detail-wrapper {
-        flex-direction: row; /* Side-by-side on larger screens */
+        flex-direction: column; /* Side-by-side on larger screens */
         align-items: flex-start; /* Align items to the top */
     }
 
     .product-info-column {
-        flex: 1; /* Takes up 1 part of available space */
+        /*flex: 1;  Takes up 1 part of available space */
         padding-right: 30px; /* Space between content and slider */
     }
 
     .product-slider-column {
-        flex: 1; /* Takes up 1 part of available space */
+        /*flex: 1;  Takes up 1 part of available space */
     }
 }
 

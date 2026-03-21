@@ -41,8 +41,10 @@ namespace DreamozTech.Controllers
             var popupPost = await _dataService.GetPostByTitleAsync("Product-Of-The-Month");
 
             var domainPath = _configuration["General:DomainPath"];
+            var googleMapKey = _configuration["GoogleMap:MapKey"];
             var memberFullName = memberDetailObject?.MemberFullName?.Replace(" ", "") ?? string.Empty;
             var memberLogoImagePath = memberDetailObject != null ? new Uri(domainPath + memberDetailObject.ProfilePicture) : null;
+            var memberFaviconPath = web != null ? new Uri(domainPath + web.LogoFavicon) : null;
 
             var currentPage = await _dataService.GetWebPageAsync(pageName);
             var homePage = await _dataService.GetWebPageAsync("Home");
@@ -77,7 +79,9 @@ namespace DreamozTech.Controllers
                 _recaptchaSecretKey,
                 _applicationId,
                 _locationId,
+                googleMapKey,
                 memberLogoImagePath,
+                memberFaviconPath,
                 productPostsList,
                 menuItems,
                 homePage,

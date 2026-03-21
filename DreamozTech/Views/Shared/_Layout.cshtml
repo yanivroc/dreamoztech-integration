@@ -4,8 +4,10 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-   @*  <meta name="google-site-verification" content="FCEzY2sZjTfnjne5vhEkkxV-k0wj4o0vYmv-6PFiNa8" />
-    <meta name="msvalidate.01" content="89274D06F4428E6B28565F32D4FE470A" /> *@
+    @* Google Webmaster Validation *@  
+    @* <meta name="google-site-verification" content="FCEzY2sZjTfnjne5vhEkkxV-k0wj4o0vYmv-6PFiNa8" /> *@ 
+    @* Bing Webmaster Validation *@
+    @* <meta name="msvalidate.01" content="89274D06F4428E6B28565F32D4FE470A" /> *@
     <title>@Model.MemberFullName</title>
     <meta name="description" content="@Model.CurrentPage.SeoDescription">
     <meta name="keywords" content="@Model.CurrentPage.SeoKeywords">
@@ -21,6 +23,7 @@
     <meta name="twitter:title" content="@Model.CurrentPage.PageTitle">
     <meta name="twitter:description" content="@Model.CurrentPage.Description">
     <meta name="twitter:image" content="@Model.MemberLogoImagePath">
+    <link rel="icon" type="image/x-icon" href="@Model.MemberFaviconPath" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,7 +37,7 @@
     <script type="text/javascript" src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
     @* <script type="text/javascript" src="https://web.squarecdn.com/v1/square.js"></script> *@
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCCZm8rWSRHkhIVNbcu1Low2__CmcGVWPg&libraries=places&callback=initAutocomplete"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=@Model.GoogleMapKey&callback=initAutocomplete"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <!-- Google tag (gtag.js) -->
     @* <script async src="https://www.googletagmanager.com/gtag/js?id=G-MW690EDNSD"></script>
