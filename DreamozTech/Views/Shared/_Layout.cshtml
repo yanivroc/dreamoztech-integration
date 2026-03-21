@@ -209,6 +209,8 @@
         @foreach (var item in Model.ProductList)
         {
             var itemPrice = item.Attributes.FirstOrDefault(x => x.Title == "price").Value;
+            var itemMinQuantity = item.Attributes.FirstOrDefault(x => x.Title == "minQuantity").Value;
+            var itemMaxQuantity = item.Attributes.FirstOrDefault(x => x.Title == "maxQuantity").Value;
             var itemImage = item.Pics.FirstOrDefault();
             var itemImageUrl = new Uri(itemImage.PicPath);
             double productPrice = double.Parse(itemPrice);
@@ -218,7 +220,7 @@
                     <a href="/@item.BizDisplayTitle"><img src="@itemImageUrl" alt="@item.BizName" /></a>
                     <h3><a href="/@item.BizDisplayTitle">@item.BizName</a></h3>
                     <p class="item-price py-4">@itemPrice AUD</p>
-                    <button class="add-to-cart-btn w-full bg-green-500 text-white py-4 px-4 rounded-md hover:bg-green-600 transition duration-300" onclick="addToCart('@item.BizName', @itemPrice, '@item.BizDisplayTitle', '@itemImageUrl')">Add to Cart</button>
+                    <button class="add-to-cart-btn w-full bg-green-500 text-white py-4 px-4 rounded-md hover:bg-green-600 transition duration-300" onclick="addToCart('@item.BizName', @itemPrice, '@item.BizDisplayTitle', '@itemImageUrl', @itemMinQuantity, @itemMaxQuantity)">Add to Cart</button>
                 </div>
             }
         }

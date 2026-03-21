@@ -106,65 +106,35 @@ function showToast(message, isError = false) {
 }
 
 // Function to calculate and update summary values
-//function updateSummary() {
-//    const cart = getCartItems();
-//    subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-//    if (subtotalAmountSpan) subtotalAmountSpan.textContent = `$${subtotal.toFixed(2)}`;
-
-//    // Calculate DELIVERY_COST first based on checkbox state and cart quantity
-//    if (deliveryCheckbox && deliveryCheckbox.checked) {
-//        let totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
-//        if (totalQuantity <= 6) {
-//            DELIVERY_COST = 9.99;
-//        } else if (totalQuantity > 6 && totalQuantity <= 12) {
-//            DELIVERY_COST = 12.99;
-//        } else {
-//            DELIVERY_COST = 15.00;
-//        }
-//        if (deliveryAmountSpan) {
-//            deliveryAmountSpan.textContent = `$${DELIVERY_COST.toFixed(2)}`;
-//            deliveryAmountSpan.style.display = 'inline';
-//        }
-//    } else {
-//        DELIVERY_COST = 0;
-//        if (deliveryAmountSpan) {
-//            deliveryAmountSpan.textContent = `$0.00`;
-//            deliveryAmountSpan.style.display = 'none';
-//        }
-//    }
-
-//    total = DELIVERY_COST + subtotal;
-//    if (totalAmountSpan) totalAmountSpan.textContent = `$${total.toFixed(2)}`;
-//}
-
 function updateSummary() {
     const cart = getCartItems();
-    // 1. Calculate the subtotal (cost of items only)
-    const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     if (subtotalAmountSpan) subtotalAmountSpan.textContent = `$${subtotal.toFixed(2)}`;
 
-    // 2. Determine delivery cost based on your new rules
+    // Calculate DELIVERY_COST first based on checkbox state and cart quantity
     if (deliveryCheckbox && deliveryCheckbox.checked) {
-        // If subtotal is 100 or more, it's free ($0), otherwise it's $10
-        DELIVERY_COST = subtotal >= 100 ? 0 : 10.00;
-
+        let totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+        if (totalQuantity <= 6) {
+            DELIVERY_COST = 9.99;
+        } else if (totalQuantity > 6 && totalQuantity <= 12) {
+            DELIVERY_COST = 12.99;
+        } else {
+            DELIVERY_COST = 15.00;
+        }
         if (deliveryAmountSpan) {
-            // Show "Free" or the dollar amount
-            deliveryAmountSpan.textContent = DELIVERY_COST === 0 ? "Free" : `$${DELIVERY_COST.toFixed(2)}`;
+            deliveryAmountSpan.textContent = `$${DELIVERY_COST.toFixed(2)}`;
             deliveryAmountSpan.style.display = 'inline';
         }
     } else {
-        // No delivery selected (e.g., Pickup)
         DELIVERY_COST = 0;
         if (deliveryAmountSpan) {
+            deliveryAmountSpan.textContent = `$0.00`;
             deliveryAmountSpan.style.display = 'none';
         }
     }
 
-    // 3. Calculate final total
-    const total = subtotal + DELIVERY_COST;
+    total = DELIVERY_COST + subtotal;
     if (totalAmountSpan) totalAmountSpan.textContent = `$${total.toFixed(2)}`;
 }
 
@@ -399,12 +369,12 @@ function addToCart(itemName, itemPrice, itemPath, itemImageUrl) {
     const existingItem = cart.find(item => item.itemPath === itemPath);
 
     if (existingItem) {
-        if (existingItem.quantity < 6) {
+        if (existingItem.quantity < 1) {
             existingItem.quantity++;
             showToast(`${itemName} added to cart!`);
         } else {
             //console.log(`Maximum quantity (6) reached for ${itemName}.`);
-            showToast(`Maximum quantity (6) reached for ${itemName}.`);
+            showToast(`Maximum quantity (1) reached for ${itemName}.`);
         }
     } else {
         cart.push({
@@ -436,7 +406,7 @@ function updateQuantity(itemPath, newQuantity) {
     let cart = getCartItems();
     cart = cart.map(item => {
         if (item.itemPath === itemPath) {
-            const quantity = Math.max(1, Math.min(6, newQuantity));
+            const quantity = Math.max(1, Math.min(1, newQuantity));
             return { ...item, quantity };
         }
         return item;
@@ -461,44 +431,26 @@ function renderCart() {
     const cart = getCartItems();
     subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-    //if (deliveryCheckbox && deliveryCheckbox.checked) {
-    //    let totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
-    //    if (totalQuantity <= 6) {
-    //        DELIVERY_COST = 9.99;
-    //    } else if (totalQuantity > 6 && totalQuantity <= 12) {
-    //        DELIVERY_COST = 12.99;
-    //    } else {
-    //        DELIVERY_COST = 15.00;
-    //    }
-    //    if (deliveryAmountSpan) {
-    //        deliveryAmountSpan.textContent = `$${DELIVERY_COST.toFixed(2)}`;
-    //        deliveryAmountSpan.style.display = 'inline';
-    //    }
-    //} else {
-    //    DELIVERY_COST = 0;
-    //    if (deliveryAmountSpan) {
-    //        deliveryAmountSpan.textContent = `$0.00`;
-    //        deliveryAmountSpan.style.display = 'none';
-    //    }
-    //}
-    //total = DELIVERY_COST + subtotal;
-
     if (deliveryCheckbox && deliveryCheckbox.checked) {
-        // New Logic: If subtotal is $100 or more, delivery is $0. Otherwise, it's $10.
-        DELIVERY_COST = subtotal >= 100 ? 0 : 10.00;
-
+        let totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+        if (totalQuantity <= 6) {
+            DELIVERY_COST = 9.99;
+        } else if (totalQuantity > 6 && totalQuantity <= 12) {
+            DELIVERY_COST = 12.99;
+        } else {
+            DELIVERY_COST = 15.00;
+        }
         if (deliveryAmountSpan) {
-            // Display "Free" if cost is 0, otherwise show the $10.00
-            deliveryAmountSpan.textContent = DELIVERY_COST === 0 ? "Free" : `$${DELIVERY_COST.toFixed(2)}`;
+            deliveryAmountSpan.textContent = `$${DELIVERY_COST.toFixed(2)}`;
             deliveryAmountSpan.style.display = 'inline';
         }
     } else {
         DELIVERY_COST = 0;
         if (deliveryAmountSpan) {
+            deliveryAmountSpan.textContent = `$0.00`;
             deliveryAmountSpan.style.display = 'none';
         }
     }
-
     total = DELIVERY_COST + subtotal;
 
     let cartContentHtml = '';
