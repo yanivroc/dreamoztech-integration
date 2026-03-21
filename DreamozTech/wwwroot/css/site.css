@@ -250,7 +250,7 @@ nav {
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     text-align: center;
-    height: 420px; /* Fixed height for consistency */
+    height: 480px; /* Fixed height for consistency */
     display: flex;
     flex-direction: column;
 }
@@ -261,6 +261,11 @@ nav {
         object-fit: cover;
         flex-shrink: 0;
     }
+
+    .product h3 {
+        display: flex;
+        height: stretch;
+     }
 
     .product h3 a {
         margin: 10px 0;
@@ -685,7 +690,7 @@ footer {
     }
 
     .product {
-        height: auto;
+        height: 420px;
         padding-bottom: 15px;
     }
 
@@ -698,7 +703,7 @@ footer {
         }
 
         .product p {
-            font-size: 0.9em;
+            font-size: 1.3em;
         }
 
     /* Footer Adjustments */
@@ -783,6 +788,14 @@ footer {
     .contact-form button {
         padding: 10px 20px;
         font-size: 16px;
+    }
+
+    .w-full {
+        width: 85%;
+    }
+
+    .contact-map {
+        width: 85%;
     }
 }
 

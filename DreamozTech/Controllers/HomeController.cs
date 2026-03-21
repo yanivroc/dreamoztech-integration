@@ -35,9 +35,10 @@ namespace DreamozTech.Controllers
             var memberDetailObject = await _dataService.GetMemberDetailsAsync();
             // Updated call and type to List<PostDto>
             var productPostsList = await _dataService.GetIndividualProductPostsAsync();
+            productPostsList = productPostsList.Where(x=>x.BizEnable == true).ToList(); // Filter enabled products
             var web = (await _dataService.GetWebResponseAsync())?.Webs?.FirstOrDefault();
-            var sliderPost = await _dataService.GetPostByTitleAsync("Slider-DreamozTech");
-            var popupPost = await _dataService.GetPostByTitleAsync("Flavor-of-the-Month");
+            var sliderPost = await _dataService.GetPostByTitleAsync("Slider-Dreamoz-Tech");
+            var popupPost = await _dataService.GetPostByTitleAsync("Product-Of-The-Month");
 
             var domainPath = _configuration["General:DomainPath"];
             var memberFullName = memberDetailObject?.MemberFullName?.Replace(" ", "") ?? string.Empty;
@@ -45,7 +46,7 @@ namespace DreamozTech.Controllers
 
             var currentPage = await _dataService.GetWebPageAsync(pageName);
             var homePage = await _dataService.GetWebPageAsync("Home");
-            var cookiesPage = await _dataService.GetWebPageAsync("Cookies");
+            var cookiesPage = await _dataService.GetWebPageAsync("Products");
             var aboutPage = await _dataService.GetWebPageAsync("About");
             var contactPage = await _dataService.GetWebPageAsync("Contact");
             var termsPage = await _dataService.GetWebPageAsync("Terms");

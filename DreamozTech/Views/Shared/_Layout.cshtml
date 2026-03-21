@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="google-site-verification" content="FCEzY2sZjTfnjne5vhEkkxV-k0wj4o0vYmv-6PFiNa8" />
-    <meta name="msvalidate.01" content="89274D06F4428E6B28565F32D4FE470A" />
+   @*  <meta name="google-site-verification" content="FCEzY2sZjTfnjne5vhEkkxV-k0wj4o0vYmv-6PFiNa8" />
+    <meta name="msvalidate.01" content="89274D06F4428E6B28565F32D4FE470A" /> *@
     <title>@Model.MemberFullName</title>
     <meta name="description" content="@Model.CurrentPage.SeoDescription">
     <meta name="keywords" content="@Model.CurrentPage.SeoKeywords">
@@ -31,20 +31,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    @* <script type="text/javascript" src="https://sandbox.web.squarecdn.com/v1/square.js"></script> *@
-    <script type="text/javascript" src="https://web.squarecdn.com/v1/square.js"></script>
+    <script type="text/javascript" src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
+    @* <script type="text/javascript" src="https://web.squarecdn.com/v1/square.js"></script> *@
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCCZm8rWSRHkhIVNbcu1Low2__CmcGVWPg&libraries=places&callback=initAutocomplete"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-MW690EDNSD"></script>
+    @* <script async src="https://www.googletagmanager.com/gtag/js?id=G-MW690EDNSD"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
 
         gtag('config', 'G-MW690EDNSD');
-    </script>
+    </script> *@
     @await RenderSectionAsync("Scripts", required: false)
 </head>
 <body>
@@ -75,12 +75,6 @@
             </a>
         </nav>
     </header>
-
- @*    <marquee direction="left" scrollamount="5" behavior="scroll">
-        <p style="color: red; font-size: 1.5rem; font-weight: bold;">
-            This website is in testing mode and not live yet.
-        </p>
-    </marquee> *@
 
     <section id="Home" class="hero-slider">
         <div class="slides-container">
@@ -208,7 +202,7 @@
         </main>
     </section>
 
-    <section id="Cookies" class="products">
+    <section id="Products" class="products">
         @foreach (var item in Model.ProductList)
         {
             var itemPrice = item.Attributes.FirstOrDefault(x => x.Title == "price").Value;
@@ -308,7 +302,7 @@
                     <p class="text-lg leading-relaxed mb-6 text-gray-700 text-center md:text-left">
                         @Html.Raw(Model.ContactPage.Description)
                     </p>
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d50369.12098746446!2d144.75421545!3d-37.90542505!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad68873e2148ac7%3A0x5045675218cdc90!2sPoint%20Cook%20VIC%203030%2C%20Australia!5e0!3m2!1sen!2sin!4v1754176507480!5m2!1sen!2sin"
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3150.813978901656!2d144.9741948766024!3d-37.84124053561007!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x823ea6e0e18d81f5%3A0xc3ac679f724a776d!2sDreamozTech!5e0!3m2!1sen!2sau!4v1774082213710!5m2!1sen!2sau"
                             width="100%"
                             height="300"
                             style="border:0;"
