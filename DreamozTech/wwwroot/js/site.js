@@ -112,18 +112,16 @@ function updateSummary() {
 
     if (subtotalAmountSpan) subtotalAmountSpan.textContent = `$${subtotal.toFixed(2)}`;
 
-    // Calculate DELIVERY_COST first based on checkbox state and cart quantity
+    // New delivery calculation: under $75 => $10, $75 and above => free
     if (deliveryCheckbox && deliveryCheckbox.checked) {
-        let totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
-        if (totalQuantity <= 6) {
-            DELIVERY_COST = 9.99;
-        } else if (totalQuantity > 6 && totalQuantity <= 12) {
-            DELIVERY_COST = 12.99;
+        if (subtotal < 75) {
+            DELIVERY_COST = 10.00;
         } else {
-            DELIVERY_COST = 15.00;
+            DELIVERY_COST = 0.00;
         }
+
         if (deliveryAmountSpan) {
-            deliveryAmountSpan.textContent = `$${DELIVERY_COST.toFixed(2)}`;
+            deliveryAmountSpan.textContent = DELIVERY_COST === 0 ? 'Free' : `$${DELIVERY_COST.toFixed(2)}`;
             deliveryAmountSpan.style.display = 'inline';
         }
     } else {
@@ -363,28 +361,36 @@ function showCartSection() {
     }
 }
 
-// Function to add item to cart
-function addToCart(itemName, itemPrice, itemPath, itemImageUrl) {
+// Function to add item to cart (supports dynamic min/max quantity)
+function addToCart(itemName, itemPrice, itemPath, itemImageUrl, minQuantity = 1, maxQuantity = 9999) {
+    // Normalize input
+    minQuantity = parseInt(minQuantity, 10);
+    maxQuantity = parseInt(maxQuantity, 10);
+    if (isNaN(minQuantity) || minQuantity < 1) minQuantity = 1;
+    if (isNaN(maxQuantity) || maxQuantity < minQuantity) maxQuantity = minQuantity;
+
     let cart = getCartItems();
     const existingItem = cart.find(item => item.itemPath === itemPath);
 
     if (existingItem) {
-        if (existingItem.quantity < 1) {
-            existingItem.quantity++;
-            showToast(`${itemName} added to cart!`);
+        const itemMax = existingItem.maxQuantity !== undefined ? parseInt(existingItem.maxQuantity, 10) : maxQuantity;
+        if (existingItem.quantity < itemMax) {
+            existingItem.quantity = Math.min(itemMax, existingItem.quantity + 1);
+            showToast(`${itemName} quantity updated to ${existingItem.quantity}.`);
         } else {
-            //console.log(`Maximum quantity (6) reached for ${itemName}.`);
-            showToast(`Maximum quantity (1) reached for ${itemName}.`);
+            showToast(`Maximum quantity (${itemMax}) reached for ${itemName}.`);
         }
     } else {
         cart.push({
             name: itemName,
             price: itemPrice,
             itemPath: itemPath,
-            quantity: 1,
-            imagePath: itemImageUrl
+            quantity: minQuantity,
+            imagePath: itemImageUrl,
+            minQuantity: minQuantity,
+            maxQuantity: maxQuantity
         });
-        showToast(`${itemName} added to cart!`);
+        showToast(`${itemName} added to cart${minQuantity > 1 ? ` (quantity ${minQuantity})` : ''}!`);
     }
 
     saveCartItems(cart);
@@ -401,12 +407,16 @@ function saveCartItems(cart) {
     }
 }
 
-// Function to update item quantity in cart
+// Function to update item quantity in cart (respects item min/max)
 function updateQuantity(itemPath, newQuantity) {
     let cart = getCartItems();
     cart = cart.map(item => {
         if (item.itemPath === itemPath) {
-            const quantity = Math.max(1, Math.min(1, newQuantity));
+            const minQ = (typeof item.minQuantity === 'number' ? item.minQuantity : parseInt(item.minQuantity, 10)) || 1;
+            const maxQ = (typeof item.maxQuantity === 'number' ? item.maxQuantity : parseInt(item.maxQuantity, 10)) || 9999;
+            let quantity = parseInt(newQuantity, 10) || minQ;
+            if (quantity < minQ) quantity = minQ;
+            if (quantity > maxQ) quantity = maxQ;
             return { ...item, quantity };
         }
         return item;
@@ -431,17 +441,15 @@ function renderCart() {
     const cart = getCartItems();
     subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+    // New delivery calculation in render: under $75 => $10, $75 and above => free
     if (deliveryCheckbox && deliveryCheckbox.checked) {
-        let totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
-        if (totalQuantity <= 6) {
-            DELIVERY_COST = 9.99;
-        } else if (totalQuantity > 6 && totalQuantity <= 12) {
-            DELIVERY_COST = 12.99;
+        if (subtotal < 75) {
+            DELIVERY_COST = 10.00;
         } else {
-            DELIVERY_COST = 15.00;
+            DELIVERY_COST = 0.00;
         }
         if (deliveryAmountSpan) {
-            deliveryAmountSpan.textContent = `$${DELIVERY_COST.toFixed(2)}`;
+            deliveryAmountSpan.textContent = DELIVERY_COST === 0 ? 'Free' : `$${DELIVERY_COST.toFixed(2)}`;
             deliveryAmountSpan.style.display = 'inline';
         }
     } else {
@@ -470,7 +478,12 @@ function renderCart() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        ${cart.map(item => `
+                                        ${cart.map(item => {
+                                            const minQ = (typeof item.minQuantity === 'number' ? item.minQuantity : parseInt(item.minQuantity, 10)) || 1;
+                                            const maxQ = (typeof item.maxQuantity === 'number' ? item.maxQuantity : parseInt(item.maxQuantity, 10)) || 9999;
+                                            const decreaseDisabled = item.quantity <= minQ ? 'disabled' : '';
+                                            const increaseDisabled = item.quantity >= maxQ ? 'disabled' : '';
+                                            return `
                                             <tr>
                                                 <td class="product-col" data-label="Product">
                                                     <img
@@ -492,7 +505,7 @@ function renderCart() {
                                                             <button
                                                                 data-item-path="${item.itemPath}"
                                                                 data-action="decrease"
-                                                                ${item.quantity <= 1 ? 'disabled' : ''}
+                                                                ${decreaseDisabled}
                                                                 class="quantity-btn"
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus"><path d="M5 12h14"/></svg>
@@ -503,7 +516,7 @@ function renderCart() {
                                                             <button
                                                                 data-item-path="${item.itemPath}"
                                                                 data-action="increase"
-                                                                ${item.quantity >= 1 ? 'disabled' : ''}
+                                                                ${increaseDisabled}
                                                                 class="quantity-btn"
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
@@ -522,7 +535,8 @@ function renderCart() {
                                                     <p class="text-lg font-semibold text-indigo-600">$${(item.price * item.quantity).toFixed(2)}</p>
                                                 </td>
                                             </tr>
-                                        `).join('')}
+                                        `;
+                                        }).join('')}
                                     </tbody>
                                 </table>
                     `;
@@ -539,8 +553,10 @@ function renderCart() {
         button.addEventListener('click', (event) => {
             const itemPath = event.currentTarget.dataset.itemPath;
             const action = event.currentTarget.dataset.action;
-            let currentQuantity = parseInt(event.currentTarget.closest('.quantity-controls').querySelector('span').textContent);
-            updateQuantity(itemPath, currentQuantity + (action === 'increase' ? 1 : -1));
+            const span = event.currentTarget.closest('.quantity-controls').querySelector('span');
+            const currentQuantity = parseInt(span.textContent, 10) || 0;
+            const delta = action === 'increase' ? 1 : -1;
+            updateQuantity(itemPath, currentQuantity + delta);
         });
     });
 
