@@ -35,7 +35,7 @@ namespace DreamozTech.Controllers
             var memberDetailObject = await _dataService.GetMemberDetailsAsync();
             // Updated call and type to List<PostDto>
             var productPostsList = await _dataService.GetIndividualProductPostsAsync();
-            productPostsList = productPostsList.Where(x=>x.BizEnable == true).ToList(); // Filter enabled products
+            productPostsList = productPostsList.Where(x => x.BizEnable == true).OrderBy(x => x.BizName).ToList(); // Filter enabled products
             var web = (await _dataService.GetWebResponseAsync())?.Webs?.FirstOrDefault();
             var sliderPost = await _dataService.GetPostByTitleAsync("Slider-Dreamoz-Tech");
             var popupPost = await _dataService.GetPostByTitleAsync("Product-Of-The-Month");

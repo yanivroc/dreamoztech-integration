@@ -211,7 +211,7 @@
             var itemPrice = item.Attributes.FirstOrDefault(x => x.Title == "price").Value;
             var itemMinQuantity = item.Attributes.FirstOrDefault(x => x.Title == "minquantity").Value;
             var itemMaxQuantity = item.Attributes.FirstOrDefault(x => x.Title == "maxquantity").Value;
-            var itemImage = item.Pics.FirstOrDefault();
+            var itemImage = item.Pics.OrderBy(x => x.DisplayOrder).FirstOrDefault();
             var itemImageUrl = new Uri(itemImage.PicPath);
             double productPrice = double.Parse(itemPrice);
             if (productPrice > 0)

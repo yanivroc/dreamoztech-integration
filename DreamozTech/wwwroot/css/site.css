@@ -9,7 +9,7 @@ body {
 
 body {
     margin: 0;
-    background-color: #fff8f5;
+    background-color: transparent;
     color: #333;
     /* CRUCIAL: Push content down by header height */
     padding-top: 100px; /* Default for desktop header height */
@@ -244,21 +244,25 @@ nav {
     padding: 40px;
 }
 
+.product-info-column p {
+    padding: 5px;
+}
+
 .product {
     background: #fff;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     text-align: center;
-    height: 480px; /* Fixed height for consistency */
+    height: 600px; /* Fixed height for consistency */
     display: flex;
     flex-direction: column;
 }
 
     .product img {
         width: 100%;
-        height: 200px; /* Fixed height for images */
-        object-fit: cover;
+        height: 300px; /* Fixed height for images */
+        object-fit: contain;
         flex-shrink: 0;
     }
 
