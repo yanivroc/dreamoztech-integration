@@ -79,33 +79,44 @@
         </nav>
     </header>
 
-    <section id="Home" class="hero-slider">
-        <div class="slides-container">
-            @{
-                int slideIndex = 0;
-                foreach (var pic in Model.SliderPics.OrderBy(p => p.DisplayOrder))
-                {
-                    <div class="slide @(slideIndex == 0 ? "active" : "")"
-                         style="background-image: url('@(pic.PicPath)');" title="@Model.HomePage.PageTitle">
-                        <h2>@pic.PicDescription</h2>
-                    </div>
-                    slideIndex++;
+    @{
+        // Current request path (e.g. "/", "/Home/Index", "/Goldenfir-...").
+        var currentPath = Context.Request.Path.Value ?? string.Empty;
+    }
+
+    <!-- Render the hero slider only on the home page -->
+    @if (string.Equals(currentPath, "/", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(currentPath, "/home", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(currentPath, "/home/index", StringComparison.OrdinalIgnoreCase))
+    {
+        <section id="Home" class="hero-slider">
+            <div class="slides-container">
+                @{
+                    int slideIndex = 0;
+                    foreach (var pic in Model.SliderPics.OrderBy(p => p.DisplayOrder))
+                    {
+                        <div class="slide @(slideIndex == 0 ? "active" : "")"
+                             style="background-image: url('@(pic.PicPath)');" title="@Model.HomePage.PageTitle">
+                            <h2>@pic.PicDescription</h2>
+                        </div>
+                        slideIndex++;
+                    }
                 }
-            }
-        </div>
-        <button class="prev-button">&#10094;</button>
-        <button class="next-button">&#10095;</button>
-        <div class="dots-container">
-            @{
-                int slideIndexDot = 0;
-            }
-            @foreach (var pic in Model.SliderPics.OrderBy(p => p.DisplayOrder))
-            {
-                <span class="dot @(slideIndexDot == 0 ? "active" : "")" data-slide-index="@slideIndexDot"></span>
-                slideIndexDot++;
-            }
-        </div>
-    </section>
+            </div>
+            <button class="prev-button">&#10094;</button>
+            <button class="next-button">&#10095;</button>
+            <div class="dots-container">
+                @{
+                    int slideIndexDot = 0;
+                }
+                @foreach (var pic in Model.SliderPics.OrderBy(p => p.DisplayOrder))
+                {
+                    <span class="dot @(slideIndexDot == 0 ? "active" : "")" data-slide-index="@slideIndexDot"></span>
+                    slideIndexDot++;
+                }
+            </div>
+        </section>
+    }
 
     <div class="container-fluid bg-white py-8 px-4 sm:px-6 lg:px-8 shadow-lg w-full my-8 font-semibold">
         <main role="main">
@@ -354,16 +365,22 @@
         </div>
     </footer>
 
-    <!-- Popup Overlay -->
-    <div class="popup-overlay" id="popup">
-        <div class="popup flex flex-col items-center">
-            <button class="close-btn" onclick="closePopup()">×</button>
-            <img src="@Model.PopupPostImagePath" alt="@Model.PopupPost.BizName">
-            <h2>@Model.PopupPost.MetaDesc</h2>
-            <p>@Html.Raw(@Model.PopupPost.BizDesc)</p>
-            <button class="popup-button" onclick="orderNowAndNavigate()">Order now</button>
+    @* Popup shown only on home page and when popup data exists *@
+    @if ((string.Equals(currentPath, "/", StringComparison.OrdinalIgnoreCase)
+         || string.Equals(currentPath, "/home", StringComparison.OrdinalIgnoreCase)
+         || string.Equals(currentPath, "/home/index", StringComparison.OrdinalIgnoreCase))
+        && Model.PopupPost != null)
+    {
+        <div class="popup-overlay" id="popup">
+            <div class="popup flex flex-col items-center">
+                <button class="close-btn" onclick="closePopup()">×</button>
+                <img src="@Model.PopupPostImagePath" alt="@Model.PopupPost.BizName">
+                <h2>@Model.PopupPost.MetaDesc</h2>
+                <p>@Html.Raw(@Model.PopupPost.BizDesc)</p>
+                <button class="popup-button" onclick="orderNowAndNavigate()">Order now</button>
+            </div>
         </div>
-    </div>
+    }
     <div id="toast" class="toast"></div>
     <a href="#" id="scrollToTopBtn" title="Go to top">&#9650;</a>
 </body>

@@ -28,7 +28,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 p {
-    margin-bottom: 10px !important;
+    margin-bottom: 7px !important;
 }
 
 /* Header Styles */
@@ -60,7 +60,7 @@ header {
     width: auto;
     position: absolute;
     z-index: 1001; /* Ensure logo is on top of nav links, but below hamburger */
-    top: 0px;
+    top: 20px;
     left: 40px;
 }
 
@@ -450,8 +450,8 @@ footer {
     }
 
     .popup h2 {
-        font-size: 26px;
-        margin-bottom: 10px;
+        font-size: 22px;
+        margin-bottom: 5px;
     }
 
     .popup p {
