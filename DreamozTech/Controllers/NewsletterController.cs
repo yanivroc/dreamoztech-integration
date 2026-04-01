@@ -6,6 +6,9 @@ using Square.Exceptions;
 using Square.Models;
 using System.Globalization;
 using System.Text.Json;
+using PdfSharpCore.Drawing;
+using PdfSharpCore.Pdf;
+using System.IO;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 
 namespace DreamozTech.Controllers
@@ -47,7 +50,7 @@ namespace DreamozTech.Controllers
             {
                 // Default to Sandbox if parsing fails or config is missing/invalid
                 squareEnvironment = Square.Environment.Sandbox;
-                _logger.LogWarning($"Warning: Square:Environment config value '{environmentString}' is invalid. Defaulting to Sandbox.");
+                _logger?.LogWarning($"Warning: Square:Environment config value '{environmentString}' is invalid. Defaulting to Sandbox.");
             }
 
             // SquareClient instantiation using Builder pattern for v22.0.0
@@ -63,6 +66,7 @@ namespace DreamozTech.Controllers
                 throw new ArgumentNullException("Square:LocationId is not configured in appsettings.json");
             }
 
+            _emailService = emailService;
             _dataService = dataService;
             _logger = logger;
         }
@@ -261,16 +265,21 @@ namespace DreamozTech.Controllers
             {
                 return BadRequest(new { message = "Invalid summary amounts." });
             }
+
             // IMPORTANT: Recalculate total on server to prevent client-side tampering
             decimal calculatedSubtotal = model.CartItems.Sum(item => item.Price * item.Quantity);
-            decimal calculatedDeliveryCost = 0;
+
+            // Match client-side logic in site.js:
+            // - If client indicated delivery (model.Summary.DeliveryCost > 0), delivery cost is:
+            //     subtotal < 75 => 10.00
+            //     subtotal >= 75 => 0.00 (free)
+            // - Otherwise delivery cost is 0
+            decimal calculatedDeliveryCost = 0m;
             if (model.Summary.DeliveryCost > 0)
             {
-                int totalQuantity = model.CartItems.Sum(item => item.Quantity);
-                if (totalQuantity <= 6) calculatedDeliveryCost = 9.99m;
-                else if (totalQuantity > 6 && totalQuantity <= 12) calculatedDeliveryCost = 12.99m;
-                else calculatedDeliveryCost = 15.00m;
+                calculatedDeliveryCost = calculatedSubtotal < 75m ? 10.00m : 0.00m;
             }
+
             decimal calculatedTotal = calculatedSubtotal + calculatedDeliveryCost;
 
             if (calculatedTotal != model.Summary.Total || calculatedSubtotal != model.Summary.Subtotal || calculatedDeliveryCost != model.Summary.DeliveryCost)
@@ -345,8 +354,7 @@ namespace DreamozTech.Controllers
 
             try
             {
-                // PaymentsApi is correctly accessed via _squareClient.
-                // This property is available on the SquareClient instance.
+                // PaymentsApi is correctly accessed via _square_client.
                 var createPaymentResponse = await _squareClient.PaymentsApi.CreatePaymentAsync(createPaymentRequest);
 
                 if (createPaymentResponse.Errors != null && createPaymentResponse.Errors.Any())
@@ -362,11 +370,12 @@ namespace DreamozTech.Controllers
 
                 // Payment successful
                 var payment = createPaymentResponse.Payment;
-                Console.WriteLine($"Square Payment Successful. Payment ID: {payment.Id}, Status: {payment.Status}");
+                _logger.LogInformation("Square Payment Successful. Payment ID: {PaymentId}, Status: {Status}", payment?.Id, payment?.Status);
 
                 var memberDetailObject = await _dataService.GetMemberDetailsAsync();
                 var companyName = memberDetailObject.MemberFullName;
                 var memberEmail = memberDetailObject.MemberEmail;
+                // var memberABN = memberDetailObject.MemberABN;
 
                 // Define a variable for the fulfillment message
                 string fulfillmentMessage;
@@ -382,7 +391,20 @@ namespace DreamozTech.Controllers
                     fulfillmentMessage = $"Your order is ready for pickup. We will send a separate email with pickup instructions. If you have any questions, please reply to this email. {memberEmail}";
                 }
 
-                // A. Email to the Customer
+                // generate invoice and add as attachment to email
+                var orderId = Guid.NewGuid().ToString();
+                byte[] invoiceBytes;
+                try
+                {
+                    invoiceBytes = GenerateInvoicePdf(model, orderId, companyName);
+                }
+                catch (Exception pdfEx)
+                {
+                    _logger.LogError(pdfEx, "Failed to generate invoice PDF for order {OrderId}", orderId);
+                    invoiceBytes = Array.Empty<byte>();
+                }
+
+                // A. Email to the Customer (attach invoice if generated)
                 var customerEmailBody = $"<h3>Hello {capitalizedCustomerName},</h3>" +
                                         "<p>Thank you for your order! Your payment has been processed successfully.</p>" +
                                         "<h4>Order Summary:</h4>" +
@@ -397,11 +419,25 @@ namespace DreamozTech.Controllers
                                         $"<p>{fulfillmentMessage}</p>" +
                                         $"<p>Thank you,<br/>{companyName}</p>";
 
-                var customerEmailSent = await _emailService.SendEmailAsync(
-                    model.CustomerDetails.Email,
-                    "Your Order Confirmation",
-                    customerEmailBody
-                );
+                bool customerEmailSent;
+                if (invoiceBytes != null && invoiceBytes.Length > 0)
+                {
+                    customerEmailSent = await _emailService.SendInvoiceEmailAsync(
+                        model.CustomerDetails.Email,
+                        "Your Order Confirmation and Invoice",
+                        customerEmailBody,
+                        invoiceBytes,
+                        $"invoice-{orderId}.pdf"
+                    );
+                }
+                else
+                {
+                    customerEmailSent = await _emailService.SendEmailAsync(
+                        model.CustomerDetails.Email,
+                        "Your Order Confirmation",
+                        customerEmailBody
+                    );
+                }
 
                 // Define a variable for the fulfillment message for the owner
                 string fulfillmentTypeMessage;
@@ -417,7 +453,7 @@ namespace DreamozTech.Controllers
                     fulfillmentTypeMessage = "<p><strong>Fulfillment Type:</strong> Pickup</p>";
                 }
 
-                // B. Email to the Owner
+                // B. Email to the Owner (attach same invoice)
                 var ownerEmailBody = $"<h3>New Order Received!</h3>" +
                                      $"<p>A new order has been placed on your website.</p>" +
                                      "<h4>Customer Details:</h4>" +
@@ -436,21 +472,32 @@ namespace DreamozTech.Controllers
                                      string.Join("", model.CartItems.Select(item => $"<li>{item.Name} (x{item.Quantity}) - ${item.Price * item.Quantity:F2}</li>")) +
                                      "</ul>";
 
-                var ownerEmailSent = await _emailService.SendEmailAsync(
-                    memberEmail,
-                    $"New Order from {capitalizedCustomerName}",
-                    ownerEmailBody
-                );
-
-                // It's generally better to proceed with the success response even if the email fails,
-                // as the payment has already been processed and the customer shouldn't be penalized.
-                // You should log the email failure for investigation.
-                if (!customerEmailSent || !ownerEmailSent)
+                bool ownerEmailSent;
+                if (invoiceBytes != null && invoiceBytes.Length > 0)
                 {
-                    _logger.LogWarning("Warning: One or more emails failed to send after a successful payment.");
+                    ownerEmailSent = await _emailService.SendInvoiceEmailAsync(
+                        memberEmail,
+                        $"New Order from {capitalizedCustomerName}",
+                        ownerEmailBody,
+                        invoiceBytes,
+                        $"invoice-{orderId}.pdf"
+                    );
+                }
+                else
+                {
+                    ownerEmailSent = await _emailService.SendEmailAsync(
+                        memberEmail,
+                        $"New Order from {capitalizedCustomerName}",
+                        ownerEmailBody
+                    );
                 }
 
-                return Ok(new { message = "Payment and order processed successfully!", orderId = Guid.NewGuid().ToString(), squarePaymentId = payment.Id });
+                if (!customerEmailSent || !ownerEmailSent)
+                {
+                    _logger.LogWarning("Warning: One or more emails (with invoice) failed to send after a successful payment for OrderId {OrderId}.", orderId);
+                }
+
+                return Ok(new { message = "Payment and order processed successfully!", orderId = orderId, squarePaymentId = payment.Id });
             }
             catch (ApiException e) // ApiException is correctly referenced from Square.Exceptions
             {
@@ -496,6 +543,179 @@ namespace DreamozTech.Controllers
             var capitalizedCustomerName = textInfo.ToTitleCase(customerName.ToLower());
 
             return capitalizedCustomerName;
+        }
+
+        // Generate a simple PDF invoice using PdfSharpCore
+        private byte[] GenerateInvoicePdf(PaymentRequestModel model, string orderId, string companyName)
+        {
+            using var doc = new PdfDocument();
+            var page = doc.AddPage();
+            page.Size = PdfSharpCore.PageSize.A4;
+            var gfx = XGraphics.FromPdfPage(page);
+            var fontTitle = new XFont("Arial", 16, XFontStyle.Bold);
+            var fontHeader = new XFont("Arial", 11, XFontStyle.Bold);
+            var font = new XFont("Arial", 10, XFontStyle.Regular);
+
+            double marginLeft = 40;
+            double marginRight = 40;
+            double usableWidth = page.Width.Point - marginLeft - marginRight;
+            double y = 40;
+
+            // Title / header
+            gfx.DrawString(companyName, fontTitle, XBrushes.Black, new XRect(marginLeft, y, usableWidth, 30), XStringFormats.TopLeft);
+            y += 30;
+            gfx.DrawString($"Invoice: {orderId}", font, XBrushes.Black, new XRect(marginLeft, y, usableWidth, 20), XStringFormats.TopLeft);
+            y += 18;
+            gfx.DrawString($"Date: {DateTime.UtcNow:yyyy-MM-dd}", font, XBrushes.Black, new XRect(marginLeft, y, usableWidth, 20), XStringFormats.TopLeft);
+            y += 18;
+            gfx.DrawString($"Customer: {MakeNameCapitals(model.CustomerDetails.Name)}", font, XBrushes.Black, new XRect(marginLeft, y, usableWidth, 20), XStringFormats.TopLeft);
+            y += 16;
+            gfx.DrawString($"Email: {model.CustomerDetails.Email}", font, XBrushes.Black, new XRect(marginLeft, y, usableWidth, 20), XStringFormats.TopLeft);
+            y += 24;
+
+            // Table layout: 4 columns (Name, Qty, Price, Total)
+            double colNameWidth = usableWidth * 0.55;   // name gets most space
+            double colQtyWidth = usableWidth * 0.10;
+            double colPriceWidth = usableWidth * 0.175;
+            double colTotalWidth = usableWidth * 0.175;
+
+            // Spacing settings: ensure at least 3 lines per row and some gap between rows
+            double lineHeight = font.Size + 6;             // line height for wrapped lines
+            double minRowHeight = lineHeight * 3;          // at least 3 lines tall
+            double rowGap = lineHeight;                    // blank space between rows
+
+            double rowHeaderHeight = lineHeight;
+            // Draw header
+            gfx.DrawRectangle(XPens.Black, marginLeft, y, usableWidth, rowHeaderHeight);
+            gfx.DrawString("Name", fontHeader, XBrushes.Black, new XRect(marginLeft + 4, y + 3, colNameWidth - 8, rowHeaderHeight), XStringFormats.TopLeft);
+            gfx.DrawString("Qty", fontHeader, XBrushes.Black, new XRect(marginLeft + colNameWidth + 4, y + 3, colQtyWidth - 8, rowHeaderHeight), XStringFormats.TopLeft);
+            gfx.DrawString("Price", fontHeader, XBrushes.Black, new XRect(marginLeft + colNameWidth + colQtyWidth + 4, y + 3, colPriceWidth - 8, rowHeaderHeight), XStringFormats.TopLeft);
+            gfx.DrawString("Total", fontHeader, XBrushes.Black, new XRect(marginLeft + colNameWidth + colQtyWidth + colPriceWidth + 4, y + 3, colTotalWidth - 8, rowHeaderHeight), XStringFormats.TopLeft);
+            y += rowHeaderHeight + rowGap;
+
+            // Helper to wrap text into lines fitting a width
+            List<string> WrapText(string text, XFont f, double maxWidth)
+            {
+                var words = text.Split(' ');
+                var lines = new List<string>();
+                var current = "";
+                foreach (var w in words)
+                {
+                    var test = string.IsNullOrEmpty(current) ? w : current + " " + w;
+                    var size = gfx.MeasureString(test, f);
+                    if (size.Width <= maxWidth)
+                    {
+                        current = test;
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(current))
+                        {
+                            lines.Add(current);
+                        }
+                        // If single word too long, break by characters
+                        var singleSize = gfx.MeasureString(w, f);
+                        if (singleSize.Width > maxWidth)
+                        {
+                            var chunk = "";
+                            foreach (var ch in w)
+                            {
+                                var t = chunk + ch;
+                                if (gfx.MeasureString(t, f).Width <= maxWidth)
+                                {
+                                    chunk = t;
+                                }
+                                else
+                                {
+                                    if (!string.IsNullOrEmpty(chunk)) lines.Add(chunk);
+                                    chunk = ch.ToString();
+                                }
+                            }
+                            if (!string.IsNullOrEmpty(chunk)) current = chunk;
+                            else current = "";
+                        }
+                        else
+                        {
+                            current = w;
+                        }
+                    }
+                }
+                if (!string.IsNullOrEmpty(current)) lines.Add(current);
+                if (lines.Count == 0) lines.Add("");
+                return lines;
+            }
+
+            // Print each item as a row; wrap name into multiple lines
+            foreach (var item in model.CartItems)
+            {
+                var itemTotal = item.Price * item.Quantity;
+                var nameLines = WrapText(item.Name, font, colNameWidth - 8);
+
+                // Calculate required height for this row based on wrapped lines and minimum
+                double neededHeight = Math.Max(minRowHeight, nameLines.Count * lineHeight);
+
+                // Add page if overflow
+                if (y + neededHeight + 140 > page.Height) // leave space for totals
+                {
+                    var newPage = doc.AddPage();
+                    page = newPage;
+                    page.Size = PdfSharpCore.PageSize.A4;
+                    gfx.Dispose();
+                    gfx = XGraphics.FromPdfPage(page);
+                    y = 40;
+
+                    // redraw header on new page
+                    gfx.DrawRectangle(XPens.Black, marginLeft, y, usableWidth, rowHeaderHeight);
+                    gfx.DrawString("Name", fontHeader, XBrushes.Black, new XRect(marginLeft + 4, y + 3, colNameWidth - 8, rowHeaderHeight), XStringFormats.TopLeft);
+                    gfx.DrawString("Qty", fontHeader, XBrushes.Black, new XRect(marginLeft + colNameWidth + 4, y + 3, colQtyWidth - 8, rowHeaderHeight), XStringFormats.TopLeft);
+                    gfx.DrawString("Price", fontHeader, XBrushes.Black, new XRect(marginLeft + colNameWidth + colQtyWidth + 4, y + 3, colPriceWidth - 8, rowHeaderHeight), XStringFormats.TopLeft);
+                    gfx.DrawString("Total", fontHeader, XBrushes.Black, new XRect(marginLeft + colNameWidth + colQtyWidth + colPriceWidth + 4, y + 3, colTotalWidth - 8, rowHeaderHeight), XStringFormats.TopLeft);
+                    y += rowHeaderHeight + rowGap;
+                }
+
+                // Draw row background/border
+                gfx.DrawRectangle(XPens.Black, marginLeft, y, usableWidth, neededHeight);
+
+                // Draw name lines with increased spacing
+                double textY = y + 6;
+                foreach (var line in nameLines)
+                {
+                    gfx.DrawString(line, font, XBrushes.Black, new XRect(marginLeft + 6, textY, colNameWidth - 12, lineHeight), XStringFormats.TopLeft);
+                    textY += lineHeight;
+                }
+
+                // Qty, Price, Total columns
+                gfx.DrawString(item.Quantity.ToString(), font, XBrushes.Black, new XRect(marginLeft + colNameWidth + 6, y + 6, colQtyWidth - 8, neededHeight), XStringFormats.TopLeft);
+                gfx.DrawString($"${item.Price:F2}", font, XBrushes.Black, new XRect(marginLeft + colNameWidth + colQtyWidth + 6, y + 6, colPriceWidth - 8, neededHeight), XStringFormats.TopLeft);
+                gfx.DrawString($"${itemTotal:F2}", font, XBrushes.Black, new XRect(marginLeft + colNameWidth + colQtyWidth + colPriceWidth + 6, y + 6, colTotalWidth - 8, neededHeight), XStringFormats.TopLeft);
+
+                // Advance Y including an extra gap between rows
+                y += neededHeight + rowGap;
+            }
+
+            // Bottom totals area
+            y += 12;
+            double totalsX = marginLeft + colNameWidth + colQtyWidth; // align totals to price/total columns
+
+            // Subtotal row
+            gfx.DrawString($"Subtotal:", fontHeader, XBrushes.Black, new XRect(totalsX, y, colPriceWidth, rowHeaderHeight), XStringFormats.TopLeft);
+            gfx.DrawString($"${model.Summary.Subtotal:F2}", fontHeader, XBrushes.Black, new XRect(totalsX + colPriceWidth, y, colTotalWidth, rowHeaderHeight), XStringFormats.TopLeft);
+            y += rowHeaderHeight + 4;
+
+            // Delivery row
+            gfx.DrawString($"Delivery:", fontHeader, XBrushes.Black, new XRect(totalsX, y, colPriceWidth, rowHeaderHeight), XStringFormats.TopLeft);
+            gfx.DrawString($"${model.Summary.DeliveryCost:F2}", fontHeader, XBrushes.Black, new XRect(totalsX + colPriceWidth, y, colTotalWidth, rowHeaderHeight), XStringFormats.TopLeft);
+            y += rowHeaderHeight + 4;
+
+            // Total row (bold)
+            var fontTotal = new XFont("Arial", 12, XFontStyle.Bold);
+            gfx.DrawString($"Total:", fontTotal, XBrushes.Black, new XRect(totalsX, y, colPriceWidth, rowHeaderHeight), XStringFormats.TopLeft);
+            gfx.DrawString($"${model.Summary.Total:F2}", fontTotal, XBrushes.Black, new XRect(totalsX + colPriceWidth, y, colTotalWidth, rowHeaderHeight), XStringFormats.TopLeft);
+
+            using var ms = new MemoryStream();
+            doc.Save(ms);
+            gfx.Dispose();
+            return ms.ToArray();
         }
     }
 }
