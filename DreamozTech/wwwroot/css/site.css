@@ -27,6 +27,10 @@ h1, h2, h3, h4, h5, h6 {
     color: #222;
 }
 
+p {
+    margin-bottom: 10px !important;
+}
+
 /* Header Styles */
 header {
     background-color: #fff;
@@ -695,7 +699,7 @@ footer {
     }
 
     .product {
-        height: 420px;
+        height: 480px;
         padding-bottom: 15px;
     }
 
@@ -779,9 +783,9 @@ footer {
         font-size: 1.8em;
     }
 
-    .section-content p {
+  /*  .section-content p {
         font-size: 0.95em;
-    }
+    }*/
 
     .contact-form input[type="text"],
     .contact-form input[type="email"],
