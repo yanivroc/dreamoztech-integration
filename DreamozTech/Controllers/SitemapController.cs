@@ -28,7 +28,7 @@ namespace DreamozTech.Controllers
             foreach (var page in productPostsList)
             {
                 // Correctly construct the URL, ensuring a single slash.
-                nodes.Add(new SitemapNode($"{websiteName}/store/{page.BizDisplayTitle}"));
+                nodes.Add(new SitemapNode($"{websiteName}/shop/{page.BizDisplayTitle}"));
             }
 
             // Add web pages
@@ -36,7 +36,7 @@ namespace DreamozTech.Controllers
             foreach (var page in webPageList)
             {
                 // Correctly construct the URL.
-                nodes.Add(new SitemapNode($"{websiteName}/store/{page.PagePath}"));
+                nodes.Add(new SitemapNode($"{websiteName}/shop/{page.PagePath}"));
             }
 
             return new SimpleMvcSitemap.SitemapProvider().CreateSitemap(new SitemapModel(nodes));
