@@ -56,6 +56,11 @@ namespace DreamozTech.Controllers
             // Now currentPost should be found from productPostsList (which is List<PostDto>)
             var currentPost = productPostsList?.FirstOrDefault(x => x.BizDisplayTitle.ToLower() == pageName.ToLower());
 
+            if (currentPage == null && currentPost == null)
+            {
+                return RedirectToAction("Index", new { pageName = "home" });
+            }
+
             if (currentPage == null)
             {
                 currentPage = new WebPageDto();

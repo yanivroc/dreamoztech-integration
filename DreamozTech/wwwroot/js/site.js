@@ -178,8 +178,32 @@ async function processPayment(event) {
         return false; // Prevent multiple submissions
     }
 
+    // Ensure delivery checkbox is present and checked before proceeding.
+    // If it isn't checked, show validation message and stop submission.
+    if (typeof deliveryCheckbox !== 'undefined' && deliveryCheckbox !== null) {
+        if (!deliveryCheckbox.checked) {
+            showToast('Please confirm the Delivery option before continuing.', true);
+            try {
+                deliveryCheckbox.focus();
+                deliveryCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } catch (e) {
+                // ignore scrolling/focus errors in older browsers
+            }
+            return false;
+        }
+    } else {
+        console.warn("Delivery checkbox element not found. Ensure an element with ID 'delivery-checkbox' exists.");
+    }
+
+    // Recalculate summary to ensure totals reflect delivery choice
+    try {
+        updateSummary();
+    } catch (e) {
+        console.warn("updateSummary() failed before processing payment:", e);
+    }
+
     if (!recaptchaTokenPayment) {
-        showToast('Please complete the reCAPTCHA verification.');
+        showToast('Please complete the reCAPTCHA verification.', true);
         return false;
     }
 

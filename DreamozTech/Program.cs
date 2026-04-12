@@ -67,10 +67,15 @@ builder.Services.AddLogging(config =>
 
 var app = builder.Build();
 
+// CRITICAL: This must be the very first piece of middleware.
+// It tells the app to handle requests starting with /shop.
+app.UsePathBase("/shop");
+
 // Make sure this is called before any other middleware that you want to log
 app.UseSerilogRequestLogging();
 
 app.Logger.LogInformation("Starting Application");
+app.Logger.LogInformation("Starting Sub-Application at /store");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
