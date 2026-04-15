@@ -1123,6 +1123,52 @@ footer {
         opacity: 1; /* Fade in */
     }
 
+    @media (max-width: 600px) {
+    /* Mobile-only toast override (does not change desktop rules) */
+    .toast {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        min-width: 0;
+        max-width: none;
+        width: auto;
+        box-sizing: border-box;
+        white-space: normal; /* allow wrapping on small screens */
+        font-size: 15px;
+        padding: 12px 14px;
+        z-index: 10000; /* ensure visible above other elements */
+    }
+
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+        }
+    }
+
+    /* Tablet / iPad layout (medium size) - preserves desktop rules */
+    @media (min-width: 601px) and (max-width: 1024px) {
+        .toast {
+            /* Centered and wider than mobile but not full desktop width */
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+            bottom: 24px !important;
+            min-width: 300px;
+            width: 70%;
+            max-width: 720px;
+            box-sizing: border-box;
+            white-space: normal; /* allow wrapping */
+            font-size: 16px;
+            padding: 14px 18px;
+            z-index: 10000; /* ensure visible above other elements */
+        }
+
+            .toast.show {
+                visibility: visible;
+                opacity: 1;
+            }
+    }
+
 /* Style for the cart count badge */
 .cart-count {
     background-color: #ff0000; /* Red background */

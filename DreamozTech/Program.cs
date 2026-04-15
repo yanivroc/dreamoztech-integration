@@ -60,12 +60,6 @@ builder.Services.AddLogging(config =>
     config.AddConsole();
 });
 
-builder.Services.AddWebOptimizer(pipeline =>
-{
-    pipeline.MinifyJsFiles("js/site.js");
-    pipeline.MinifyCssFiles("css/site.css", "css/cart.css");
-});
-
 var app = builder.Build();
 
 app.UsePathBase("/shop");
@@ -87,7 +81,6 @@ else
 }
 
 app.UseHttpsRedirection();
-app.UseWebOptimizer();
 app.UseStaticFiles();
 
 app.UseRouting();
