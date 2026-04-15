@@ -8,23 +8,14 @@ namespace DreamozTech.Service
     public class DataService : IDataService
     {
         private readonly ApiService _apiService;
-        private readonly IMemoryCache _memoryCache;
-        private const string CacheKeyPrefix = "DreamozTech_";
 
-        public DataService(ApiService apiService, IMemoryCache memoryCache)
+        public DataService(ApiService apiService)
         {
             _apiService = apiService;
-            _memoryCache = memoryCache;
         }
 
-        private async Task<string> GetAndCacheApiResponseAsync(string cacheKey, Func<string, Task<string>> apiCall)
+        private async Task<string> GetAndCacheApiResponseAsync(Func<string, Task<string>> apiCall)
         {
-            //if (!_memoryCache.TryGetValue(cacheKey, out string responseJson))
-            //{
-            //    string token = await _apiService.GetTokenAsync();
-            //    responseJson = await apiCall(token);
-            //    _memoryCache.Set(cacheKey, responseJson, TimeSpan.FromHours(24));
-            //}
             string token = await _apiService.GetTokenAsync();
             string responseJson = await apiCall(token);
             return responseJson;
@@ -32,29 +23,25 @@ namespace DreamozTech.Service
 
         public async Task<ResponseViewModel> GetProductResponseAsync()
         {
-            string productJson = await GetAndCacheApiResponseAsync(CacheKeyPrefix + "Product",
-                                                                   async (token) => await _apiService.GetProductsAsync(token));
+            string productJson = await GetAndCacheApiResponseAsync(async (token) => await _apiService.GetProductsAsync(token));
             return JsonConvert.DeserializeObject<ResponseViewModel>(productJson);
         }
 
         public async Task<ResponseViewModel> GetMemberResponseAsync()
         {
-            string memberJson = await GetAndCacheApiResponseAsync(CacheKeyPrefix + "Member",
-                                                                  async (token) => await _apiService.GetMemberDetailsAsync(token));
+            string memberJson = await GetAndCacheApiResponseAsync(async (token) => await _apiService.GetMemberDetailsAsync(token));
             return JsonConvert.DeserializeObject<ResponseViewModel>(memberJson);
         }
 
         public async Task<ResponseViewModel> GetPostResponseAsync()
         {
-            string postJson = await GetAndCacheApiResponseAsync(CacheKeyPrefix + "Post",
-                                                                async (token) => await _apiService.GetPostDetailsAsync(token));
+            string postJson = await GetAndCacheApiResponseAsync(async (token) => await _apiService.GetPostDetailsAsync(token));
             return JsonConvert.DeserializeObject<ResponseViewModel>(postJson);
         }
 
         public async Task<ResponseViewModel> GetWebResponseAsync()
         {
-            string webJson = await GetAndCacheApiResponseAsync(CacheKeyPrefix + "Web",
-                                                               async (token) => await _apiService.GetWebDetailsAsync(token));
+            string webJson = await GetAndCacheApiResponseAsync(async (token) => await _apiService.GetWebDetailsAsync(token));
             return JsonConvert.DeserializeObject<ResponseViewModel>(webJson);
         }
 

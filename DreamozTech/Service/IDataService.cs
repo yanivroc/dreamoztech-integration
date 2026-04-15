@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using DreamozTech.Api;
+﻿using DreamozTech.Api;
 using DreamozTech.Models;
 
 namespace DreamozTech.Service

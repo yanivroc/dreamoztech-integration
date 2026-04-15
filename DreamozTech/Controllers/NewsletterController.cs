@@ -397,7 +397,7 @@ namespace DreamozTech.Controllers
                 var rawName = model.CustomerDetails?.Name ?? "customer";
                 var sanitized = Regex.Replace(rawName.ToLowerInvariant(), @"[^a-z0-9]+", "-").Trim('-');
                 if (sanitized.Length > 40) sanitized = sanitized.Substring(0, 40); // limit length
-                var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+                var timestamp = DateTime.Now.ToString("yyyyMMddHHmm");
                 var orderId = $"{sanitized}-{timestamp}";
 
                 byte[] invoiceBytes;

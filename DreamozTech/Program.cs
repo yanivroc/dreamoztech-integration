@@ -1,8 +1,7 @@
 using DreamozTech.Api;
 using DreamozTech.Models;
 using Serilog;
-using System.Net; // Keep this as you use HttpStatusCode
-using Microsoft.AspNetCore.Http; // for PathString checks
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,9 +24,6 @@ builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<DreamozTech.Service.IDataService, DreamozTech.Service.DataService>();
 builder.Services.AddScoped<DreamozTech.Service.IEmailService, DreamozTech.Service.EmailService>();
 builder.Services.AddScoped<DreamozTech.Service.IPostService, DreamozTech.Service.PostService>();
-
-// Add MemoryCache services
-builder.Services.AddMemoryCache();
 
 // Register IHttpClientFactory
 builder.Services.AddHttpClient();
@@ -62,9 +58,6 @@ builder.Services.AddLogging(config =>
 {
     config.AddDebug();
     config.AddConsole();
-    // AddEventLog is Windows-specific and can have performance implications.
-    // Ensure it's desired for your deployment environment.
-    config.AddEventLog();
 });
 
 builder.Services.AddWebOptimizer(pipeline =>
@@ -75,25 +68,6 @@ builder.Services.AddWebOptimizer(pipeline =>
 
 var app = builder.Build();
 
-// Redirect root requests to /shop/
-// - This lets users visiting the single-host root (/) be forwarded to the app mounted at /shop.
-// - Place this BEFORE UsePathBase so the redirect triggers when the incoming request URL does not start with /shop.
-app.Use(async (context, next) =>
-{
-    var path = context.Request.Path;
-    if (path == "/" || path == PathString.Empty)
-    {
-        var qs = context.Request.QueryString.HasValue ? context.Request.QueryString.Value : "";
-        // Redirect to /shop/ preserving any query string.
-        context.Response.Redirect("/shop/" + qs, permanent: false);
-        return;
-    }
-    await next();
-});
-
-// Tell the pipeline that the app is mounted under /shop.
-// When hosted behind a reverse proxy that forwards requests to your app at /shop,
-// this will set PathBase for routing, link generation, static files, etc.
 app.UsePathBase("/shop");
 
 // Make sure this is called before any other middleware that you want to log
