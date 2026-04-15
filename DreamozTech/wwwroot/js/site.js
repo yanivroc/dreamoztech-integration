@@ -282,7 +282,7 @@ async function processPayment(event) {
 
         //console.log('Sending Payment Data to Backend:', paymentData);
 
-        const response = await fetch('/Newsletter/pay', {
+        const response = await fetch('/shop/Newsletter/pay', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -631,7 +631,7 @@ async function handleContactFormSubmit(event) {
     };
 
     try {
-        const response = await fetch(form.action, {
+        const response = await fetch('/shop/Newsletter/contact', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -685,7 +685,7 @@ async function handleSubscription(event) {
         recaptchaToken: recaptchaToken
     };
     try {
-        const response = await fetch(form.action, {
+        const response = await fetch('/shop/Newsletter/subscribe', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
