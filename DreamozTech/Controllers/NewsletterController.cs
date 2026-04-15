@@ -10,6 +10,7 @@ using PdfSharpCore.Drawing;
 using PdfSharpCore.Pdf;
 using System.IO;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
+using System.Text.RegularExpressions;
 
 namespace DreamozTech.Controllers
 {
@@ -392,7 +393,13 @@ namespace DreamozTech.Controllers
                 }
 
                 // generate invoice and add as attachment to email
-                var orderId = Guid.NewGuid().ToString();
+                // create a readable order id using sanitized customer name + UTC timestamp
+                var rawName = model.CustomerDetails?.Name ?? "customer";
+                var sanitized = Regex.Replace(rawName.ToLowerInvariant(), @"[^a-z0-9]+", "-").Trim('-');
+                if (sanitized.Length > 40) sanitized = sanitized.Substring(0, 40); // limit length
+                var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+                var orderId = $"{sanitized}-{timestamp}";
+
                 byte[] invoiceBytes;
                 try
                 {
@@ -497,9 +504,9 @@ namespace DreamozTech.Controllers
                     _logger.LogWarning("Warning: One or more emails (with invoice) failed to send after a successful payment for OrderId {OrderId}.", orderId);
                 }
 
-                return Ok(new { message = "Payment and order processed successfully!", orderId = orderId, squarePaymentId = payment.Id });
+                return Ok(new { message = "Payment and order processed successfully!", orderId, squarePaymentId = payment.Id });
             }
-            catch (ApiException e) // ApiException is correctly referenced from Square.Exceptions
+            catch (ApiException e)
             {
                 // Handle Square SDK specific exceptions (e.g., network issues, invalid credentials)
                 _logger.LogError($"Square API Exception: {e.Message}");

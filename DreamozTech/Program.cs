@@ -2,6 +2,7 @@ using DreamozTech.Api;
 using DreamozTech.Models;
 using Serilog;
 using System.Net; // Keep this as you use HttpStatusCode
+using Microsoft.AspNetCore.Http; // for PathString checks
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +12,8 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
     .ReadFrom.Services(services));
 
 // Add services to the container.
-// AddControllersWithViews includes AddControllers
+// If you use Razor Pages, add Razor Pages support.
+builder.Services.AddRazorPages();
 builder.Services.AddControllersWithViews();
 
 // Configure the EmailConfig section from appsettings.json
@@ -65,45 +67,67 @@ builder.Services.AddLogging(config =>
     config.AddEventLog();
 });
 
+builder.Services.AddWebOptimizer(pipeline =>
+{
+    pipeline.MinifyJsFiles("js/site.js");
+    pipeline.MinifyCssFiles("css/site.css", "css/cart.css");
+});
+
 var app = builder.Build();
 
-// CRITICAL: This must be the very first piece of middleware.
-// It tells the app to handle requests starting with /shop.
+// Redirect root requests to /shop/
+// - This lets users visiting the single-host root (/) be forwarded to the app mounted at /shop.
+// - Place this BEFORE UsePathBase so the redirect triggers when the incoming request URL does not start with /shop.
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path;
+    if (path == "/" || path == PathString.Empty)
+    {
+        var qs = context.Request.QueryString.HasValue ? context.Request.QueryString.Value : "";
+        // Redirect to /shop/ preserving any query string.
+        context.Response.Redirect("/shop/" + qs, permanent: false);
+        return;
+    }
+    await next();
+});
+
+// Tell the pipeline that the app is mounted under /shop.
+// When hosted behind a reverse proxy that forwards requests to your app at /shop,
+// this will set PathBase for routing, link generation, static files, etc.
 app.UsePathBase("/shop");
 
 // Make sure this is called before any other middleware that you want to log
 app.UseSerilogRequestLogging();
 
 app.Logger.LogInformation("Starting Application");
-app.Logger.LogInformation("Starting Sub-Application at /store");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage(); // Use only in Development
+    app.UseDeveloperExceptionPage();
 }
 else
 {
-    app.UseExceptionHandler("/Home/Error"); // Centralized error handling
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-app.UseHttpsRedirection(); // Apply HTTPS redirection here
+app.UseHttpsRedirection();
+app.UseWebOptimizer();
 app.UseStaticFiles();
 
-app.UseRouting(); // Important: must be before UseCors, UseAuthentication, UseAuthorization, and UseEndpoints
+app.UseRouting();
 
-app.UseCors(); // Place after UseRouting, before Map* or UseEndpoints if using default policy
+app.UseCors();
 
-// app.UseAuthentication(); // If you add authentication later
-// app.UseAuthorization();  // If you add authorization later
+// Map Razor Pages and Controllers
+app.MapRazorPages();
+app.MapControllers();
 
-// Map endpoints
-app.MapControllers(); // Maps attribute-routed controllers
+// Optional: conventional controller route (keeps previous behaviour)
 app.MapControllerRoute(
-    name: "pageRoute",
-    pattern: "{pageName?}", // {pageName?} makes the pageName segment optional
-    defaults: new { controller = "Home", action = "Index" }
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}"
 );
+
 app.Run();
