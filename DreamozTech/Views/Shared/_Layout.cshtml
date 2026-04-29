@@ -214,7 +214,36 @@
                     <div class="form-row">
                         <div class="g-recaptcha" data-sitekey="@Model.SiteKey" data-callback="recaptchaCompletedPayment"></div>
                     </div>
+                    <!-- testing instructions -->
+                    <div class="form-row">
+                        <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 5px; font-family: sans-serif;">
+                            <h3 style="margin-top: 0; color: red;">Test Payment Instructions</h3>
+                            <p style="font-size: 14px; color: #555;">Use the following credentials to demo the Square integration. No real charges will be processed.</p>
 
+                            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                                <tr style="border-bottom: 1px solid #ddd;">
+                                    <td style="padding: 8px 0; font-weight: bold;">Card Number</td>
+                                    <td style="padding: 8px 0;"><code>4111 1111 1111 1111</code></td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #ddd;">
+                                    <td style="padding: 8px 0; font-weight: bold;">Expiry Date</td>
+                                    <td style="padding: 8px 0;">Any future date (e.g., 12/28)</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #ddd;">
+                                    <td style="padding: 8px 0; font-weight: bold;">CVV</td>
+                                    <td style="padding: 8px 0;">Any 3 digits</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; font-weight: bold;">Postcode (US Zip)</td>
+                                    <td style="padding: 8px 0;"><code>40001</code></td>
+                                </tr>
+                            </table>
+
+                            <p style="font-size: 12px; color: #888; margin-top: 10px; font-style: italic;">
+                                *Note: Use the Zip Code 40001 for Sandbox validation, even for Australian regional testing.
+                            </p>
+                        </div>
+                    </div>
                     <!-- Pay Button -->
                     <button type="submit" id="pay-button" class="btn btn-checkout">Complete Your Order</button>
                 </div>
@@ -324,15 +353,6 @@
                     <p class="text-lg leading-relaxed mb-6 text-gray-700 text-center md:text-left">
                         @Html.Raw(Model.ContactPage.Description)
                     </p>
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3150.813978901656!2d144.9741948766024!3d-37.84124053561007!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x823ea6e0e18d81f5%3A0xc3ac679f724a776d!2sDreamozTech!5e0!3m2!1sen!2sau!4v1774082213710!5m2!1sen!2sau"
-                            width="100%"
-                            height="300"
-                            style="border:0;"
-                            allowfullscreen=""
-                            loading="lazy"
-                            referrerpolicy="no-referrer-when-downgrade"
-                            class="contact-map rounded-xl shadow-lg mt-4"
-                            title="DreamozTech Location on Google Maps"></iframe>
                 </div>
             </div>
         </div>
