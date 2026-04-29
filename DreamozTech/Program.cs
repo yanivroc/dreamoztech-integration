@@ -91,6 +91,14 @@ app.UseCors();
 app.MapRazorPages();
 app.MapControllers();
 
+// Add a route that maps single-segment slugs to HomeController.Index(pageName)
+// This must come before the default route so slugs are captured first.
+app.MapControllerRoute(
+    name: "page-slug",
+    pattern: "{pageName}",
+    defaults: new { controller = "Home", action = "Index" }
+);
+
 // Optional: conventional controller route (keeps previous behaviour)
 app.MapControllerRoute(
     name: "default",
