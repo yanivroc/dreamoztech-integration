@@ -15,10 +15,13 @@ namespace DreamozTech.Controllers
         private readonly string _applicationId;
         private readonly string _locationId;
         private readonly IConfiguration _configuration;
-        public HomeController(IDataService dataService, IConfiguration configuration)
+        private readonly ISquareService _squareService;
+
+        public HomeController(IDataService dataService, IConfiguration configuration, ISquareService squareService)
         {
             _dataService = dataService;
             _configuration = configuration;
+            _squareService = squareService;
             _recaptchaSiteKey = _configuration["GoogleReCaptcha:SiteKey"];
             _recaptchaSecretKey = _configuration["GoogleReCaptcha:SecretKey"];
             _applicationId = _configuration["Square:ApplicationId"];
@@ -76,6 +79,18 @@ namespace DreamozTech.Controllers
             List<MenuItemRoot> menuItems = web != null && !string.IsNullOrEmpty(web.MenuItems)
                                             ? JsonConvert.DeserializeObject<List<MenuItemRoot>>(web.MenuItems)
                                             : new List<MenuItemRoot>();
+
+            // Fetch Square products (mapped as SquareProduct from ISquareService)
+            List<SquareProduct> squareProducts;
+            try
+            {
+                squareProducts = await _squareService.GetAllSquareProductsAsync();
+            }
+            catch (Exception)
+            {
+                // swallow and continue if Square fails - keep site stable
+                squareProducts = new List<SquareProduct>();
+            }
 
             DisplayViewModel vm = new DisplayViewModel(
                 memberDetailObject,

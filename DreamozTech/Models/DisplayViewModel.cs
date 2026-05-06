@@ -1,6 +1,4 @@
 ﻿using DreamozTech.Api;
-using System.Collections.Generic;
-using System;
 
 namespace DreamozTech.Models
 {
@@ -28,7 +26,8 @@ namespace DreamozTech.Models
             Uri popupPostImagePath,
             List<PicDto> sliderPics,
             WebPageDto? currentPage,
-            PostDto? currentPost = null)
+            PostDto? currentPost = null,
+            List<SquareProduct>? squareProducts = null)
         {
             MemberDetailObject = memberDetailObject;
             MemberFullName = memberFullName;
@@ -51,7 +50,8 @@ namespace DreamozTech.Models
             PopupPostImagePath = popupPostImagePath;
             SliderPics = sliderPics;
             CurrentPage = currentPage;
-            CurrentPost = currentPost; 
+            CurrentPost = currentPost;
+            SquareProducts = squareProducts ?? new List<SquareProduct>();
         }
 
         public string MemberFullName { get; }
@@ -75,6 +75,7 @@ namespace DreamozTech.Models
         public WebPageDto? CurrentPage { get; private set; }
         public MemberDto MemberDetailObject { get; }
         public PostDto PopupPost { get; }
-        public PostDto? CurrentPost { get; } 
+        public PostDto? CurrentPost { get; }
+        public List<SquareProduct> SquareProducts { get; }
     }
 }

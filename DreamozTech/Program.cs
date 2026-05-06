@@ -24,6 +24,7 @@ builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<DreamozTech.Service.IDataService, DreamozTech.Service.DataService>();
 builder.Services.AddScoped<DreamozTech.Service.IEmailService, DreamozTech.Service.EmailService>();
 builder.Services.AddScoped<DreamozTech.Service.IPostService, DreamozTech.Service.PostService>();
+builder.Services.AddSingleton<DreamozTech.Service.ISquareService, DreamozTech.Service.SquareService>();
 
 // Register IHttpClientFactory
 builder.Services.AddHttpClient();
