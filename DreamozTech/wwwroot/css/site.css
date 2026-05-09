@@ -258,9 +258,11 @@ nav {
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     text-align: center;
-    height: 600px; /* Fixed height for consistency */
+    /* Remove fixed height: 480px; */
     display: flex;
     flex-direction: column;
+    padding-bottom: 15px;
+    height: 100%; /* Allows grid to stretch them equally */
 }
 
     .product img {
@@ -271,29 +273,30 @@ nav {
     }
 
     .product h3 {
-        display: flex;
-        height: stretch;
-     }
-
-    .product h3 a {
         margin: 10px 0;
-        color: #b45f06;
         padding: 0 10px;
-        max-height: 30px;
-        display: block;
-        font-size: large;
-        font-weight: bold;
+        /* Allow the title area to grow and take up available space */
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
+        .product h3 a {
+            color: #b45f06;
+            text-decoration: none;
+            font-size: 1.1em;
+            font-weight: bold;
+            /* Remove max-height: 30px; it causes the overlap! */
+            line-height: 1.3;
+        }
+
     .product p {
-        padding: 0 10px 10px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        font-size: 18px;
+        margin: 0;
+        padding: 15px 10px;
+        font-size: 1.3em;
         font-weight: bold;
-        padding-top: 1rem;
-        padding-bottom: 1rem;
+        color: #333;
     }
 
 /* Button CSS (add-to-cart-btn) */
