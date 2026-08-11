@@ -1,6 +1,6 @@
 # Dreamoz Razor Pages App
 
-Short description: A Razor Pages web application targeting .NET 8 that integrates with the Dreamoz API to list products and allow customers to add items to a cart and checkout. The live application is available at: https://dreamoz.com.au/shop
+Short description: A Razor Pages web application targeting .NET 8 that integrates with the Dreamoz API to list products and allow customers to add items to a cart and checkout.
 
 This README lives at the repository root (next to the solution `.sln`) and explains how the app connects to the Dreamoz API, how product and cart flows work, and how to run and test the application locally.
 
@@ -8,7 +8,6 @@ This README lives at the repository root (next to the solution `.sln`) and expla
 
 - Framework: .NET 8, Razor Pages.
 - Purpose: Fetch products from the Dreamoz API, display them in the shop UI, allow adding to a cart, and complete a checkout (supports test-mode payments).
-- Live site: `https://dreamoz.com.au/shop`
 - Follow repository rules: Observe `.editorconfig` and `CONTRIBUTING.md` for formatting, naming, and commit guidance.
 
 ## How the app integrates with the Dreamoz API
@@ -37,9 +36,9 @@ Always prefer secrets and environment variables for keys in development and prod
 
 1. Shop page fetches product list from `Dreamoz` API and renders product cards.
 2. Click a product to view details; select options (size, color) if applicable.
-3. Click `Add to cart` — cart stored in session/cookie and reflected in the header/cart page.
+3. Click `Add to cart` â€” cart stored in session/cookie and reflected in the header/cart page.
 4. Navigate to cart page to update quantities or remove items.
-5. Proceed to checkout — payment form uses the configured gateway.
+5. Proceed to checkout â€” payment form uses the configured gateway.
 
 Implementation notes:
 - Cart state is typically implemented as a small server-side model persisted to the session (or as an encrypted cookie) so Razor Pages handlers can mutate it without a full client-side store.
@@ -52,7 +51,7 @@ Implementation notes:
   - Card number: `4242 4242 4242 4242`
   - Expiry: any valid future date
   - CVC: any 3 digits
-- Use the test credentials provided by the payment provider — never use real card numbers in development or public repositories.
+- Use the test credentials provided by the payment provider â€” never use real card numbers in development or public repositories.
 - After switching to sandbox/test mode you can perform full checkout flows without charging real cards.
 
 ## Run locally
