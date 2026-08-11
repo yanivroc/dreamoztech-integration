@@ -20,7 +20,7 @@ High-level behavior:
 
 Typical integration patterns used in the project:
 - A typed `DreamozApiClient` or service registered in DI (look for `Services` or `Clients` in the project) handles:
-  - Base URL configuration (e.g., `https://dreamoz.com.au/api/...`).
+  - Base URL configuration (e.g., `https://dtapicoreappservice-b7cqgucahsbnckdh.australiaeast-01.azurewebsites.net/api/...`).
   - Optional API key or bearer token injected from `appsettings.*` or environment variables.
   - Retry/backoff and basic caching for product lists.
 - Razor Pages call the service from page handlers (`OnGet`, `OnPost`) and map models to view models for rendering.
